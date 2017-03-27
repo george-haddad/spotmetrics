@@ -34,11 +34,11 @@ Go to [Fiji's download](http://fiji.sc/#download) page and download the latest v
 1. Exit Fiji if it is already running
 2. Download the latest version of Spotmetrics Jar file [Here](https://github.com/george-haddad/spotmetrics/releases/latest)
 3. Download all dependency Jar files
-  * tablelayout.jar
-  * poi-3.14-20160307.jar
-  * poi-ooxml-3.14-20160307.jar
-  * poi-ooxml-schemas-3.14-20160307.jar
-  * xmlbeans-2.6.0.jar
+    * tablelayout.jar
+    * poi-3.14-20160307.jar
+    * poi-ooxml-3.14-20160307.jar
+    * poi-ooxml-schemas-3.14-20160307.jar
+    * xmlbeans-2.6.0.jar
 4. Place the *Spot_Metrics.jar* file in Fiji's plugins folder `Fiji.app\plugins`
 5. If prompted to replace an existing file, click on "Yes"
 6. Place all the dependency jar files in Fiji's plugins folder `Fiji.app\plugins`
