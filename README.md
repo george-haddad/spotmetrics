@@ -81,11 +81,11 @@ An online check tool can be used like [Online MD5](http://onlinemd5.com/)
 * George El-Haddad
   * Software Engineer
 * Stavros Hadjisolomou
-  * Lead Scientist
+  * Principal Investigator
 
 # License
 
-Copyright © 2017 Georges El-Haddad
+Copyright © 2017 Georges El-Haddad & Stavros Hadjisolomou
 
 Licensed under the General Public License version 3.0
 - [http://www.gnu.org/licenses/gpl-3.0.en.html](http://www.gnu.org/licenses/gpl-3.0.en.html)
