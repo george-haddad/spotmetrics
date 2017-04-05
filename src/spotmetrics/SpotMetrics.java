@@ -13,7 +13,9 @@ import spotmetrics.ui.UITool;
  * Created on: 5:47:09 PM - Sep 4, 2014
  */
 public class SpotMetrics implements PlugIn {
-
+        
+        public static final String VERSION = "v2.8";
+        
         @Override
         public void run(String arg) {
                 if (IJ.versionLessThan("1.51h")) {

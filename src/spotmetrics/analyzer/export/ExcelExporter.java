@@ -46,7 +46,7 @@ public final class ExcelExporter implements Closeable {
                 setAnalysisOptions(analysisOpt);
         }
 
-        public final void export(File excelFile) throws NotInitializedException, IOException {
+        public final void export(File excelFile) throws NotInitializedException {
                 if (!isInit()) {
                         throw new NotInitializedException("The ExcelExporter has not been properly initialized");
                 }

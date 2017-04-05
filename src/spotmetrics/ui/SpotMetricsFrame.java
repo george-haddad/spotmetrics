@@ -24,6 +24,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import ij.ImagePlus;
+import spotmetrics.SpotMetrics;
 import spotmetrics.analyzer.AnalysisEngine;
 import spotmetrics.analyzer.FlashDetect;
 import spotmetrics.analyzer.ProcessingOptions;
@@ -182,7 +183,7 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame {
                 mainPanel.add(Box.createVerticalStrut(5));
                 mainPanel.add(progressBar);
 
-                setTitle("SpotMetrics : v2.7");
+                setTitle("SpotMetrics : "+SpotMetrics.VERSION);
                 setLayout(new BorderLayout(5, 5));
                 add(mainPanel, BorderLayout.NORTH);
                 pack();

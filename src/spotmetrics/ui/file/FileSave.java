@@ -45,17 +45,12 @@ public final class FileSave {
                 });
 
                 int r = chooser.showSaveDialog(null);
-
+                
+                File path = null;
                 if (r == JFileChooser.APPROVE_OPTION) {
-                        return new File(chooser.getSelectedFile().getAbsolutePath());
+                        path = new File(chooser.getSelectedFile().getAbsolutePath());
                 }
-                else {
-                        return null;
-                }
+                
+                return path;
         }
-
-        //        public static void main(String ... args) {
-        //                File shit = FileSave.saveFile("pick a dir", new File(System.getProperty("user.home")), "Excel File", "test file.xls");
-        //                System.out.println(shit.getAbsolutePath());
-        //        }
 }

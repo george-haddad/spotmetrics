@@ -445,27 +445,24 @@ public final class AnalysisEngine {
                                 if (Double.isNaN(rgbMeasurements.getrStdDev()) && Double.isNaN(rgbMeasurements.getgStdDev()) && Double.isNaN(rgbMeasurements.getbStdDev())) {
                                         return true;
                                 }
-                                else {
-                                        return false;
-                                }
+                                
+                                return false;
                         }
 
                         case SEMISTRICT: {
                                 if (Double.isNaN(rgbMeasurements.getrStdDev()) && Double.isNaN(rgbMeasurements.getgStdDev()) || Double.isNaN(rgbMeasurements.getbStdDev())) {
                                         return true;
                                 }
-                                else {
-                                        return false;
-                                }
+                                
+                                return false;
                         }
 
                         case RELAXED: {
                                 if (Double.isNaN(rgbMeasurements.getrStdDev()) || Double.isNaN(rgbMeasurements.getgStdDev()) || Double.isNaN(rgbMeasurements.getbStdDev())) {
                                         return true;
                                 }
-                                else {
-                                        return false;
-                                }
+                                
+                                return false;
                         }
 
                         default: {
