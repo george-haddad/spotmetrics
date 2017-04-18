@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
@@ -16,6 +18,8 @@ import javax.swing.JTextField;
 import javax.swing.text.AbstractDocument;
 import layout.TableLayout;
 import spotmetrics.analyzer.AnalysisOptions;
+import spotmetrics.data.save.SavablePanel;
+import spotmetrics.data.save.Savables;
 import spotmetrics.ui.comp.RegexDocumentFilter;
 
 /**
@@ -25,7 +29,7 @@ import spotmetrics.ui.comp.RegexDocumentFilter;
  * Created on: Dec 17, 2015
  *
  */
-public class AnalysisPanel extends JPanel {
+public class AnalysisPanel extends JPanel implements SavablePanel {
 
         private static final long serialVersionUID = 8797948870110036499L;
         private static final Pattern DECIMAL_PATTERN = Pattern.compile("^\\d+(\\.\\d{1,2})?$");
@@ -238,5 +242,20 @@ public class AnalysisPanel extends JPanel {
                 aopt.setMaxCircularity(getMaxCircularity());
                 aopt.setInfinity(isInfinity());
                 return aopt;
+        }
+
+        @Override
+        public Map<Savables, Object> getSavableData() {
+                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
+                savableData.put(Savables.ANALYSIS_X_OFFSET, Integer.valueOf(xOffsetField.getText()));
+                savableData.put(Savables.ANALYSIS_Y_OFFSET, Integer.valueOf(yOffsetField.getText()));
+                savableData.put(Savables.ANALYSIS_W_OFFSET, Integer.valueOf(wOffsetField.getText()));
+                savableData.put(Savables.ANALYSIS_H_OFFSET, Integer.valueOf(hOffsetField.getText()));
+                savableData.put(Savables.ANALYSIS_MIN_SIZE, Double.valueOf(minSizeField.getText()));
+                savableData.put(Savables.ANALYSIS_MAX_SIZE, Double.valueOf(maxSizeField.getText()));
+                savableData.put(Savables.ANALYSIS_MIN_CIRCULARITY, Double.valueOf(circMinField.getText()));
+                savableData.put(Savables.ANALYSIS_MAX_CIRCULARITY, Double.valueOf(circMaxField.getText()));
+                savableData.put(Savables.ANALYSIS_INFINITY, Boolean.valueOf(infinityCheckBox.isSelected()));
+                return savableData;
         }
 }

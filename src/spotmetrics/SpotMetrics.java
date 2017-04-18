@@ -14,7 +14,7 @@ import spotmetrics.ui.UITool;
  */
 public class SpotMetrics implements PlugIn {
         
-        public static final String VERSION = "v2.8";
+        public static final String VERSION = "v2.9-beta";
         
         @Override
         public void run(String arg) {

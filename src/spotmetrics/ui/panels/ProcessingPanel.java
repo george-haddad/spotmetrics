@@ -2,6 +2,8 @@ package spotmetrics.ui.panels;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
@@ -10,6 +12,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import spotmetrics.data.save.SavablePanel;
+import spotmetrics.data.save.Savables;
 
 /**
  * 
@@ -18,7 +22,7 @@ import javax.swing.SpinnerNumberModel;
  * Created on: Dec 17, 2015
  *
  */
-public class ProcessingPanel extends JPanel {
+public class ProcessingPanel extends JPanel implements SavablePanel {
 
         private static final long serialVersionUID = -7762522817194499710L;
 
@@ -75,5 +79,14 @@ public class ProcessingPanel extends JPanel {
 
         public final boolean isDarkBackground() {
                 return darkBbgCheckBox.isSelected();
+        }
+
+        @Override
+        public Map<Savables,Object> getSavableData() {
+                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
+                savableData.put(Savables.PROCESSING_SUBTRACT_BACKGROUND, subBackgroundSpinner.getModel().getValue());
+                savableData.put(Savables.PROCESSING_DARK_BACKGROUND, Boolean.valueOf(darkBbgCheckBox.isSelected()));
+                savableData.put(Savables.PROCESSING_THRESHOLD_METHOD, thresholdComboBox.getSelectedItem());
+                return savableData;
         }
 }

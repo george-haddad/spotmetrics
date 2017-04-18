@@ -11,6 +11,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -31,6 +32,8 @@ import spotmetrics.analyzer.ProcessingOptions;
 import spotmetrics.analyzer.TrackingOptions;
 import spotmetrics.analyzer.VideoRange;
 import spotmetrics.data.MyTrack;
+import spotmetrics.data.save.SavablePanel;
+import spotmetrics.data.save.Savables;
 import spotmetrics.ui.file.FileOpen;
 import spotmetrics.ui.panels.AnalysisPanel;
 import spotmetrics.ui.panels.FlashPanel;
@@ -47,7 +50,7 @@ import spotmetrics.ui.panels.ViewerPanel;
  * Created on: 4:33:56 PM - Sep 5, 2014
  * 
  */
-public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame {
+public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, SavablePanel {
 
         private static final long serialVersionUID = -6163968461355644696L;
 
@@ -390,6 +393,45 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame {
         public File getVideoFile() {
                 return videoFile;
         }
+        
+        public Map<Savables, Object> getSavableDataPanel(String panelName) throws NullPointerException {
+                if(panelName == null) {
+                        throw new NullPointerException("panelName cannot be null");
+                }
+                
+                switch(panelName) {
+                        case "ViewerPanel": {
+                                return viewerPanel.getSavableData();
+                        }
+                        case "FlashPanel": {
+                                return flashPanel.getSavableData();
+                        }
+                        
+                        case "AnalysisPanel": {
+                                return analysisPanel.getSavableData();
+                        }
+                        
+                        case "TrackingPanel": {
+                                trackingPanel.getSavableData();
+                        }
+                        
+                        case "ProcessingPanel": {
+                                processingPanel.getSavableData();
+                        }
+                        
+                        case "SpotMetricsFrame": {
+                                this.getSavableData();
+                        }
+                        
+                        case "SpotsPanel": {
+                                spotsPanel.getSavableData();
+                        }
+                        
+                        default: {
+                                return null;
+                        }
+                }
+        }
 
         public static final void main(String... args) {
 
@@ -403,5 +445,12 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame {
                 SpotMetricsFrame frame = new SpotMetricsFrame();
                 UITool.center(frame);
                 frame.setVisible(true);
+        }
+
+        @Override
+        public Map<Savables, Object> getSavableData() {
+                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
+                savableData.put(Savables.MAIN_VIDEO_FILE, getVideoFile().getAbsolutePath());
+                return savableData;
         }
 }

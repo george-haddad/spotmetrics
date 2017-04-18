@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.BorderFactory;
@@ -50,6 +51,8 @@ import spotmetrics.analyzer.export.NotInitializedException;
 import spotmetrics.analyzer.export.OverlayVideoExporter;
 import spotmetrics.data.MySpot;
 import spotmetrics.data.MyTrack;
+import spotmetrics.data.save.SavablePanel;
+import spotmetrics.data.save.Savables;
 import spotmetrics.ui.SpotMetricsFrame;
 import spotmetrics.ui.UITool;
 import spotmetrics.ui.file.FileSave;
@@ -61,7 +64,7 @@ import spotmetrics.ui.file.FileSave;
  * Created on: Dec 18, 2015
  *
  */
-public class SpotsPanel extends JPanel {
+public class SpotsPanel extends JPanel implements SavablePanel {
 
         private static final long serialVersionUID = -3870213724431674065L;
 
@@ -72,6 +75,8 @@ public class SpotsPanel extends JPanel {
         private DefaultMutableTreeNode rootNode = null;
         private JButton excelButton = null;
         private JButton overlayButton = null;
+        private JButton saveButton = null;
+        private JButton openButton = null;
 
         /**
          * Key: "Track_+trackId"<br>
@@ -140,24 +145,37 @@ public class SpotsPanel extends JPanel {
                 overlayButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-//                                File videoFile = parentFrame.getVideoFile();
-//                                final String videoName = videoFile.getName().substring(0, videoFile.getName().lastIndexOf('.'));
-//                                final File overlayFile = FileSave.saveFile("Save Overlay Video as ...", new File(System.getProperty("user.home")), "AVI", videoName + ".avi");
-//                                if(overlayFile != null) {
-                                        Thread t = new Thread(new Runnable() {
-                                                
-                                                @Override
-                                                public void run() {
-                                                        overlayButton_actionPerformed();
-                                                        
-                                                }
-                                        });
-                                        t.start();
-//                                }
+                                Thread t = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                                overlayButton_actionPerformed();
+
+                                        }
+                                });
+                                t.start();
                         }
                 });
-
+                
+                saveButton = new JButton("Save");
+                saveButton.setEnabled(false);
+                saveButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                                saveButton_actionPerformed();
+                        }
+                });
+                
+                openButton = new JButton("Open");
+                openButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                                openButton_actionPerformed();
+                        }
+                });
+                
                 JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
+                buttonPanel.add(openButton);
+                buttonPanel.add(saveButton);
                 buttonPanel.add(excelButton);
                 buttonPanel.add(overlayButton);
 
@@ -171,6 +189,15 @@ public class SpotsPanel extends JPanel {
         public SpotsPanel(SpotMetricsFrame parentFrame) {
                 this();
                 setParentFrame(parentFrame);
+        }
+        
+        private final void saveButton_actionPerformed() {
+                //TODO
+                parentFrame.getSavableDataPanel("");
+        }
+        
+        private final void openButton_actionPerformed() {
+                
         }
 
         private final void spotTree_rightClickMouseReleased(MouseEvent me) {
@@ -553,6 +580,7 @@ public class SpotsPanel extends JPanel {
 
                 excelButton.setEnabled(true);
                 overlayButton.setEnabled(true);
+                saveButton.setEnabled(true);
         }
 
         private final void normalizeTracks(HashMap<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h) {
@@ -577,6 +605,7 @@ public class SpotsPanel extends JPanel {
                                 EventQueue.invokeLater(new Runnable() {
                                         @Override
                                         public void run() {
+                                                saveButton.setEnabled(false);
                                                 excelButton.setEnabled(false);
                                                 overlayButton.setEnabled(false);
                                                 parentFrame.setProcessButtonEnabled(false);
@@ -590,6 +619,7 @@ public class SpotsPanel extends JPanel {
                                 EventQueue.invokeLater(new Runnable() {
                                         @Override
                                         public void run() {
+                                                saveButton.setEnabled(true);
                                                 excelButton.setEnabled(true);
                                                 overlayButton.setEnabled(true);
                                                 parentFrame.setProcessButtonEnabled(true);
@@ -613,6 +643,7 @@ public class SpotsPanel extends JPanel {
                         EventQueue.invokeLater(new Runnable() {
                                 @Override
                                 public void run() {
+                                        saveButton.setEnabled(false);
                                         excelButton.setEnabled(false);
                                         overlayButton.setEnabled(false);
                                         parentFrame.setProcessButtonEnabled(false);
@@ -632,6 +663,7 @@ public class SpotsPanel extends JPanel {
                                 EventQueue.invokeLater(new Runnable() {
                                         @Override
                                         public void run() {
+                                                saveButton.setEnabled(true);
                                                 excelButton.setEnabled(true);
                                                 overlayButton.setEnabled(true);
                                                 parentFrame.setProcessButtonEnabled(true);
@@ -653,6 +685,7 @@ public class SpotsPanel extends JPanel {
                         EventQueue.invokeLater(new Runnable() {
                                 @Override
                                 public void run() {
+                                        saveButton.setEnabled(false);
                                         excelButton.setEnabled(false);
                                         overlayButton.setEnabled(false);
                                         parentFrame.setProcessButtonEnabled(false);
@@ -686,6 +719,7 @@ public class SpotsPanel extends JPanel {
                                         EventQueue.invokeLater(new Runnable() {
                                                 @Override
                                                 public void run() {
+                                                        saveButton.setEnabled(true);
                                                         excelButton.setEnabled(true);
                                                         overlayButton.setEnabled(true);
                                                         parentFrame.setProcessButtonEnabled(true);
@@ -702,6 +736,7 @@ public class SpotsPanel extends JPanel {
                 EventQueue.invokeLater(new Runnable() {
                         @Override
                         public void run() {
+                                saveButton.setEnabled(false);
                                 excelButton.setEnabled(false);
                                 overlayButton.setEnabled(false);
                                 parentFrame.setProcessButtonEnabled(false);
@@ -735,6 +770,7 @@ public class SpotsPanel extends JPanel {
                 EventQueue.invokeLater(new Runnable() {
                         @Override
                         public void run() {
+                                saveButton.setEnabled(true);
                                 excelButton.setEnabled(true);
                                 overlayButton.setEnabled(true);
                                 parentFrame.setProcessButtonEnabled(true);
@@ -825,5 +861,14 @@ public class SpotsPanel extends JPanel {
 
         public final void setParentFrame(SpotMetricsFrame parentFrame) {
                 this.parentFrame = parentFrame;
+        }
+
+        @Override
+        public Map<Savables, Object> getSavableData() {
+                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
+                savableData.put(Savables.MAIN_VIDEO_FILE, tracksMap);
+                savableData.put(Savables.MAIN_VIDEO_DATA, imagePlus);
+                savableData.put(Savables.MAIN_VIDEO_COLOR_DATA, imagePlusColor);
+                return savableData;
         }
 }
