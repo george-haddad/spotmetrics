@@ -15,6 +15,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
@@ -42,6 +43,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Overlay;
@@ -161,7 +166,7 @@ public class SpotsPanel extends JPanel {
                 });
                 
                 saveButton = new JButton("Save");
-//                saveButton.setEnabled(false);
+                saveButton.setEnabled(false);
                 saveButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
@@ -252,6 +257,21 @@ public class SpotsPanel extends JPanel {
                                 oos.writeObject(tracksMap);
                                 oos.flush();
                                 
+                                GsonBuilder builder = new GsonBuilder();
+                                Gson gson = builder.create();
+                                String jsonStr = gson.toJson(tracksMap);
+                                FileWriter jfos = new FileWriter(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.json"));
+                                jfos.write(jsonStr);
+                                jfos.flush();
+                                jfos.close();
+                                
+                                XStream xstream = new XStream(new StaxDriver());
+                                String xmlStr = xstream.toXML(tracksMap);
+                                FileWriter xfos = new FileWriter(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.xml"));
+                                xfos.write(xmlStr);
+                                xfos.flush();
+                                xfos.close();
+                                
                                 IJ.save(imagePlus, saveLocation.getAbsolutePath()+File.separator+"orig_"+parentFrame.getVideoFile().getName());
                                 IJ.save(imagePlusColor, saveLocation.getAbsolutePath()+File.separator+"orig_color_"+parentFrame.getVideoFile().getName());
                         }
@@ -282,7 +302,7 @@ public class SpotsPanel extends JPanel {
                                         }
                                 }
                                 
-                                System.out.println("Wrote files to: "+saveLocation.getAbsolutePath());
+                                JOptionPane.showMessageDialog(this, "State saved");
                         }
                 }
         }
