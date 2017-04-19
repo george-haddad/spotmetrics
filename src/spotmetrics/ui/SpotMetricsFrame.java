@@ -32,6 +32,7 @@ import spotmetrics.analyzer.ProcessingOptions;
 import spotmetrics.analyzer.TrackingOptions;
 import spotmetrics.analyzer.VideoRange;
 import spotmetrics.data.MyTrack;
+import spotmetrics.data.save.Panels;
 import spotmetrics.data.save.SavablePanel;
 import spotmetrics.data.save.Savables;
 import spotmetrics.ui.file.FileOpen;
@@ -394,37 +395,33 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
                 return videoFile;
         }
         
-        public Map<Savables, Object> getSavableDataPanel(String panelName) throws NullPointerException {
+        public Map<Savables, String> getSavableDataPanel(Panels panelName) throws NullPointerException {
                 if(panelName == null) {
                         throw new NullPointerException("panelName cannot be null");
                 }
                 
                 switch(panelName) {
-                        case "ViewerPanel": {
+                        case VIEWER_PANEL: {
                                 return viewerPanel.getSavableData();
                         }
-                        case "FlashPanel": {
+                        case FLASH_PANEL: {
                                 return flashPanel.getSavableData();
                         }
                         
-                        case "AnalysisPanel": {
+                        case ANALYSIS_PANEL: {
                                 return analysisPanel.getSavableData();
                         }
                         
-                        case "TrackingPanel": {
-                                trackingPanel.getSavableData();
+                        case TRACKING_PANEL: {
+                                return trackingPanel.getSavableData();
                         }
                         
-                        case "ProcessingPanel": {
-                                processingPanel.getSavableData();
+                        case PROCESSING_PANEL: {
+                                return processingPanel.getSavableData();
                         }
                         
-                        case "SpotMetricsFrame": {
-                                this.getSavableData();
-                        }
-                        
-                        case "SpotsPanel": {
-                                spotsPanel.getSavableData();
+                        case SPOT_METRICS_FRAME: {
+                                return this.getSavableData();
                         }
                         
                         default: {
@@ -448,9 +445,15 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
         }
 
         @Override
-        public Map<Savables, Object> getSavableData() {
-                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
-                savableData.put(Savables.MAIN_VIDEO_FILE, getVideoFile().getAbsolutePath());
+        public Map<Savables, String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
+                if(getVideoFile() != null) {
+                        savableData.put(Savables.MAIN_VIDEO_FILE, getVideoFile().getAbsolutePath());
+                }
+                else {
+                        savableData.put(Savables.MAIN_VIDEO_FILE, "");
+                }
+                
                 return savableData;
         }
 }

@@ -1,5 +1,7 @@
 package spotmetrics.data;
 
+import java.io.Serializable;
+
 /**
  * 
  * @author George El Haddad (george.dma@gmail.com)
@@ -7,8 +9,10 @@ package spotmetrics.data;
  * Created on: 5:06:52 PM - Sep 17, 2014
  * 
  */
-public final class MySpot extends OffsetSpot implements Comparable<MySpot> {
+public final class MySpot extends OffsetSpot implements Comparable<MySpot>, Serializable {
 
+        private static final long serialVersionUID = 4154212715782798790L;
+        
         private String label = null;
         private int id = -1;
         private int trackId = -1;

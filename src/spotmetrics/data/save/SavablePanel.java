@@ -11,5 +11,5 @@ import java.util.Map;
  */
 public interface SavablePanel {
 
-        public Map<Savables,Object> getSavableData();
+        public Map<Savables,String> getSavableData();
 }

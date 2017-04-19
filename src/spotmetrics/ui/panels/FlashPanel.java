@@ -232,13 +232,13 @@ public class FlashPanel extends JPanel implements SavablePanel {
         }
 
         @Override
-        public Map<Savables, Object> getSavableData() {
-                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
-                savableData.put(Savables.FLASH_DETECT_MODE, flashDetectModeComboBox.getSelectedItem());
-                savableData.put(Savables.FLASH_OFFSET_BEFORE, Integer.valueOf(offsetBeforeSlider.getValue()));
-                savableData.put(Savables.FLASH_OFFSET_AFTER, Integer.valueOf(offsetAfterSlider.getValue()));
-                savableData.put(Savables.FLASH_DETECT, Boolean.valueOf(detectFlashCheckBox.isSelected()));
-                savableData.put(Savables.FLASH_DELETE_ONLY, Boolean.valueOf(deleteFlashOnlyCheckBox.isSelected()));
+        public Map<Savables, String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
+                savableData.put(Savables.FLASH_DETECT_MODE, ((FlashDetect)flashDetectModeComboBox.getSelectedItem()).toString());
+                savableData.put(Savables.FLASH_OFFSET_BEFORE, String.valueOf(offsetBeforeSlider.getValue()));
+                savableData.put(Savables.FLASH_OFFSET_AFTER, String.valueOf(offsetAfterSlider.getValue()));
+                savableData.put(Savables.FLASH_DETECT, String.valueOf(detectFlashCheckBox.isSelected()));
+                savableData.put(Savables.FLASH_DELETE_ONLY, String.valueOf(deleteFlashOnlyCheckBox.isSelected()));
                 return savableData;
         }
 }

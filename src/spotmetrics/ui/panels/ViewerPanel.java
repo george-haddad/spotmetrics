@@ -105,8 +105,8 @@ public class ViewerPanel extends AbstractActionListenerPanel implements SavableP
         }
 
         @Override
-        public Map<Savables,Object> getSavableData() {
-                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
+        public Map<Savables,String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
                 savableData.put(Savables.VIEWER_FLASH_FRAME, flashFrameField.getText());
                 savableData.put(Savables.VIEWER_VIDEO_SELECTION, videoSelectField.getText());
                 return savableData;

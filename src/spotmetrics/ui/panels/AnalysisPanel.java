@@ -245,17 +245,17 @@ public class AnalysisPanel extends JPanel implements SavablePanel {
         }
 
         @Override
-        public Map<Savables, Object> getSavableData() {
-                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
-                savableData.put(Savables.ANALYSIS_X_OFFSET, Integer.valueOf(xOffsetField.getText()));
-                savableData.put(Savables.ANALYSIS_Y_OFFSET, Integer.valueOf(yOffsetField.getText()));
-                savableData.put(Savables.ANALYSIS_W_OFFSET, Integer.valueOf(wOffsetField.getText()));
-                savableData.put(Savables.ANALYSIS_H_OFFSET, Integer.valueOf(hOffsetField.getText()));
-                savableData.put(Savables.ANALYSIS_MIN_SIZE, Double.valueOf(minSizeField.getText()));
-                savableData.put(Savables.ANALYSIS_MAX_SIZE, Double.valueOf(maxSizeField.getText()));
-                savableData.put(Savables.ANALYSIS_MIN_CIRCULARITY, Double.valueOf(circMinField.getText()));
-                savableData.put(Savables.ANALYSIS_MAX_CIRCULARITY, Double.valueOf(circMaxField.getText()));
-                savableData.put(Savables.ANALYSIS_INFINITY, Boolean.valueOf(infinityCheckBox.isSelected()));
+        public Map<Savables, String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
+                savableData.put(Savables.ANALYSIS_X_OFFSET, xOffsetField.getText());
+                savableData.put(Savables.ANALYSIS_Y_OFFSET, yOffsetField.getText());
+                savableData.put(Savables.ANALYSIS_W_OFFSET, wOffsetField.getText());
+                savableData.put(Savables.ANALYSIS_H_OFFSET, hOffsetField.getText());
+                savableData.put(Savables.ANALYSIS_MIN_SIZE, minSizeField.getText());
+                savableData.put(Savables.ANALYSIS_MAX_SIZE, maxSizeField.getText());
+                savableData.put(Savables.ANALYSIS_MIN_CIRCULARITY, circMinField.getText());
+                savableData.put(Savables.ANALYSIS_MAX_CIRCULARITY, circMaxField.getText());
+                savableData.put(Savables.ANALYSIS_INFINITY, String.valueOf(infinityCheckBox.isSelected()));
                 return savableData;
         }
 }

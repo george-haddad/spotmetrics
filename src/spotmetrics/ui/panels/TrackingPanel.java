@@ -211,14 +211,14 @@ public class TrackingPanel extends JPanel implements SavablePanel {
         }
 
         @Override
-        public Map<Savables, Object> getSavableData() {
-                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
-                savableData.put(Savables.TRACK_BLOB_DIAMETER, Integer.valueOf(blobDiameterSlider.getValue()));
-                savableData.put(Savables.TRACK_BLOB_THRESHOLD, Integer.valueOf(blobThresholdSlider.getValue()));
-                savableData.put(Savables.TRACK_LINKING_MAX_DISTANCE, linkingMaxDistanceSpinner.getModel().getValue());
-                savableData.put(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE, gapClosingMaxDistanceSpinner.getModel().getValue());
-                savableData.put(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP, gapClosingMaxFrameGapSpinner.getModel().getValue());
-                savableData.put(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE, initialSpotFilterValueSpinner.getModel().getValue());
+        public Map<Savables, String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
+                savableData.put(Savables.TRACK_BLOB_DIAMETER, String.valueOf(blobDiameterSlider.getValue()));
+                savableData.put(Savables.TRACK_BLOB_THRESHOLD, String.valueOf(blobThresholdSlider.getValue()));
+                savableData.put(Savables.TRACK_LINKING_MAX_DISTANCE, String.valueOf(linkingMaxDistanceSpinner.getModel().getValue()));
+                savableData.put(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE, String.valueOf(gapClosingMaxDistanceSpinner.getModel().getValue()));
+                savableData.put(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP, String.valueOf(gapClosingMaxFrameGapSpinner.getModel().getValue()));
+                savableData.put(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE, String.valueOf(initialSpotFilterValueSpinner.getModel().getValue()));
                 return savableData;
         }
 }

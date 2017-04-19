@@ -13,10 +13,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.BorderFactory;
@@ -51,7 +55,7 @@ import spotmetrics.analyzer.export.NotInitializedException;
 import spotmetrics.analyzer.export.OverlayVideoExporter;
 import spotmetrics.data.MySpot;
 import spotmetrics.data.MyTrack;
-import spotmetrics.data.save.SavablePanel;
+import spotmetrics.data.save.Panels;
 import spotmetrics.data.save.Savables;
 import spotmetrics.ui.SpotMetricsFrame;
 import spotmetrics.ui.UITool;
@@ -64,7 +68,7 @@ import spotmetrics.ui.file.FileSave;
  * Created on: Dec 18, 2015
  *
  */
-public class SpotsPanel extends JPanel implements SavablePanel {
+public class SpotsPanel extends JPanel {
 
         private static final long serialVersionUID = -3870213724431674065L;
 
@@ -157,7 +161,7 @@ public class SpotsPanel extends JPanel implements SavablePanel {
                 });
                 
                 saveButton = new JButton("Save");
-                saveButton.setEnabled(false);
+//                saveButton.setEnabled(false);
                 saveButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
@@ -192,8 +196,95 @@ public class SpotsPanel extends JPanel implements SavablePanel {
         }
         
         private final void saveButton_actionPerformed() {
-                //TODO
-                parentFrame.getSavableDataPanel("");
+                File saveLocation = FileSave.saveFile("Save Analysis", new File(System.getProperty("user.home")), "Project Folder", "", true);
+                if(saveLocation != null) {
+                        System.out.println("Save location: "+saveLocation.getAbsolutePath());
+                        saveLocation.mkdirs();
+                        
+                        Properties props = new Properties();
+                        
+                        Map<Savables,String> saveData = parentFrame.getSavableDataPanel(Panels.SPOT_METRICS_FRAME);
+                        props.put(Savables.MAIN_VIDEO_FILE.getKey(), saveData.get(Savables.MAIN_VIDEO_FILE));
+                        
+                        saveData = parentFrame.getSavableDataPanel(Panels.VIEWER_PANEL);
+                        props.put(Savables.VIEWER_FLASH_FRAME.getKey(), saveData.get(Savables.VIEWER_FLASH_FRAME));
+                        props.put(Savables.VIEWER_VIDEO_SELECTION.getKey(), saveData.get(Savables.VIEWER_VIDEO_SELECTION));
+                        
+                        saveData = parentFrame.getSavableDataPanel(Panels.PROCESSING_PANEL);
+                        props.put(Savables.PROCESSING_SUBTRACT_BACKGROUND.getKey(), saveData.get(Savables.PROCESSING_SUBTRACT_BACKGROUND));
+                        props.put(Savables.PROCESSING_DARK_BACKGROUND.getKey(), saveData.get(Savables.PROCESSING_DARK_BACKGROUND));
+                        props.put(Savables.PROCESSING_THRESHOLD_METHOD.getKey(), saveData.get(Savables.PROCESSING_THRESHOLD_METHOD));
+                        
+                        saveData = parentFrame.getSavableDataPanel(Panels.FLASH_PANEL);
+                        props.put(Savables.FLASH_DETECT_MODE.getKey(), saveData.get(Savables.FLASH_DETECT_MODE));
+                        props.put(Savables.FLASH_OFFSET_BEFORE.getKey(), saveData.get(Savables.FLASH_OFFSET_BEFORE));
+                        props.put(Savables.FLASH_OFFSET_AFTER.getKey(), saveData.get(Savables.FLASH_OFFSET_AFTER));
+                        props.put(Savables.FLASH_DETECT.getKey(), saveData.get(Savables.FLASH_DETECT));
+                        props.put(Savables.FLASH_DELETE_ONLY.getKey(), saveData.get(Savables.FLASH_DELETE_ONLY));
+                        
+                        saveData = parentFrame.getSavableDataPanel(Panels.TRACKING_PANEL);
+                        props.put(Savables.TRACK_BLOB_DIAMETER.getKey(), saveData.get(Savables.TRACK_BLOB_DIAMETER));
+                        props.put(Savables.TRACK_BLOB_THRESHOLD.getKey(), saveData.get(Savables.TRACK_BLOB_THRESHOLD));
+                        props.put(Savables.TRACK_LINKING_MAX_DISTANCE.getKey(), saveData.get(Savables.TRACK_LINKING_MAX_DISTANCE));
+                        props.put(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE.getKey(), saveData.get(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE));
+                        props.put(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP.getKey(), saveData.get(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP));
+                        props.put(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE.getKey(), saveData.get(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE));
+
+                        saveData = parentFrame.getSavableDataPanel(Panels.ANALYSIS_PANEL);
+                        props.put(Savables.ANALYSIS_X_OFFSET.getKey(), saveData.get(Savables.ANALYSIS_X_OFFSET));
+                        props.put(Savables.ANALYSIS_Y_OFFSET.getKey(), saveData.get(Savables.ANALYSIS_Y_OFFSET));
+                        props.put(Savables.ANALYSIS_W_OFFSET.getKey(), saveData.get(Savables.ANALYSIS_W_OFFSET));
+                        props.put(Savables.ANALYSIS_H_OFFSET.getKey(), saveData.get(Savables.ANALYSIS_H_OFFSET));
+                        props.put(Savables.ANALYSIS_MIN_SIZE.getKey(), saveData.get(Savables.ANALYSIS_MIN_SIZE));
+                        props.put(Savables.ANALYSIS_MAX_SIZE.getKey(), saveData.get(Savables.ANALYSIS_MAX_SIZE));
+                        props.put(Savables.ANALYSIS_MIN_CIRCULARITY.getKey(), saveData.get(Savables.ANALYSIS_MIN_CIRCULARITY));
+                        props.put(Savables.ANALYSIS_MAX_CIRCULARITY.getKey(), saveData.get(Savables.ANALYSIS_MAX_CIRCULARITY));
+                        props.put(Savables.ANALYSIS_INFINITY.getKey(), saveData.get(Savables.ANALYSIS_INFINITY));
+                        
+                        FileOutputStream fos = null;
+                        ObjectOutputStream oos = null;
+                        try {
+                                fos = new FileOutputStream(new File(saveLocation.getAbsolutePath()+File.separator+"config.xml"));
+                                props.storeToXML(fos, "SpotMetrics Panel Configuraitons", "UTF-8");
+                                fos.flush();
+                                
+                                oos = new ObjectOutputStream(new FileOutputStream(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.bin")));
+                                oos.writeObject(tracksMap);
+                                oos.flush();
+                                
+                                IJ.save(imagePlus, saveLocation.getAbsolutePath()+File.separator+"orig_"+parentFrame.getVideoFile().getName());
+                                IJ.save(imagePlusColor, saveLocation.getAbsolutePath()+File.separator+"orig_color_"+parentFrame.getVideoFile().getName());
+                        }
+                        catch(FileNotFoundException fnne) {
+                                fnne.printStackTrace();
+                        }
+                        catch(IOException ioe) {
+                                ioe.printStackTrace();
+                        }
+                        finally {
+                                if(fos != null) {
+                                        try {
+                                                fos.close();
+                                        }
+                                        catch(IOException e) {}
+                                        finally {
+                                                fos = null;
+                                        }
+                                }
+                                
+                                if(oos != null) {
+                                        try {
+                                                oos.close();
+                                        }
+                                        catch(IOException e) {}
+                                        finally {
+                                                oos = null;
+                                        }
+                                }
+                                
+                                System.out.println("Wrote files to: "+saveLocation.getAbsolutePath());
+                        }
+                }
         }
         
         private final void openButton_actionPerformed() {
@@ -861,14 +952,5 @@ public class SpotsPanel extends JPanel implements SavablePanel {
 
         public final void setParentFrame(SpotMetricsFrame parentFrame) {
                 this.parentFrame = parentFrame;
-        }
-
-        @Override
-        public Map<Savables, Object> getSavableData() {
-                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
-                savableData.put(Savables.MAIN_VIDEO_FILE, tracksMap);
-                savableData.put(Savables.MAIN_VIDEO_DATA, imagePlus);
-                savableData.put(Savables.MAIN_VIDEO_COLOR_DATA, imagePlusColor);
-                return savableData;
         }
 }

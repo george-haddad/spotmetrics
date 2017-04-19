@@ -1,5 +1,6 @@
 package spotmetrics.data;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -10,8 +11,10 @@ import java.util.Comparator;
  * Created on: 4:53:24 PM - Sep 17, 2014
  * 
  */
-public final class MyTrack {
+public final class MyTrack implements Serializable {
 
+        private static final long serialVersionUID = 2155179873649029886L;
+        
         private String label = null;
         private int trackId = -1;
         private int numberOfSpots = -1;

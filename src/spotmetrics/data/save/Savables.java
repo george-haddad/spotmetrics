@@ -1,10 +1,5 @@
 package spotmetrics.data.save;
 
-import java.io.File;
-import java.util.HashMap;
-import ij.ImagePlus;
-import spotmetrics.analyzer.FlashDetect;
-
 /**
  * 
  * @author George El Haddad (george.dma@gmail.com)
@@ -13,55 +8,54 @@ import spotmetrics.analyzer.FlashDetect;
  *
  */
 public enum Savables {
-        MAIN_VIDEO_FILE("SpotMetricsFrame", "videoFile", File.class.getCanonicalName()),
-        MAIN_TRACKS_MAP("SpotsPanel", "tracksMap", HashMap.class.getCanonicalName()),
-        MAIN_VIDEO_DATA("SpotsPanel", "imagePlus", ImagePlus.class.getCanonicalName()),
-        MAIN_VIDEO_COLOR_DATA("SpotsPanel", "imagePlusColor", ImagePlus.class.getCanonicalName()),
-        VIEWER_FLASH_FRAME("ViewerPanel", "flashFrame", String.class.getCanonicalName()),
-        VIEWER_VIDEO_SELECTION("ViewerPanel", "videoSelection", String.class.getCanonicalName()),
-        PROCESSING_SUBTRACT_BACKGROUND("ProcessingPanel", "subtractBackground", Integer.class.getCanonicalName()),
-        PROCESSING_DARK_BACKGROUND("ProcessingPanel", "darkBackground", Boolean.class.getCanonicalName()),
-        PROCESSING_THRESHOLD_METHOD("ProcessingPanel", "thresholdMethod", String.class.getCanonicalName()),
-        FLASH_DETECT_MODE("FlashPanel", "flashDetectMode", FlashDetect.class.getCanonicalName()),
-        FLASH_OFFSET_BEFORE("FlashPanel", "offsetBefore", Integer.class.getCanonicalName()),
-        FLASH_OFFSET_AFTER("FlashPanel", "offsetAfter", Integer.class.getCanonicalName()),
-        FLASH_DETECT("FlashPanel", "detectFlash", Boolean.class.getCanonicalName()),
-        FLASH_DELETE_ONLY("FlashPanel", "deleteFlashOnly", Boolean.class.getCanonicalName()),
-        TRACK_BLOB_DIAMETER("TrackingPanel", "blobDiameter", Integer.class.getCanonicalName()),
-        TRACK_BLOB_THRESHOLD("TrackingPanel", "blobThreshold", Integer.class.getCanonicalName()),
-        TRACK_LINKING_MAX_DISTANCE("TrackingPanel", "linkingMaxDistance", Integer.class.getCanonicalName()),
-        TRACK_GAP_CLOSING_MAX_DISTANCE("TrackingPanel", "gapClosingMaxDistance", Integer.class.getCanonicalName()),
-        TRACK_GAP_CLOSING_MAX_FRAME_GAP("TrackingPanel", "gapClosingMaxFrameGap", Integer.class.getCanonicalName()),
-        TRACK_INITIAL_SPOT_FILTER_VALUE("TrackingPanel", "initialSpotFilterValue", Integer.class.getCanonicalName()),
-        ANALYSIS_X_OFFSET("AnalysisPanel", "xOffset", Integer.class.getCanonicalName()),
-        ANALYSIS_Y_OFFSET("AnalysisPanel", "yOffset", Integer.class.getCanonicalName()),
-        ANALYSIS_W_OFFSET("AnalysisPanel", "wOffset", Integer.class.getCanonicalName()),
-        ANALYSIS_H_OFFSET("AnalysisPanel", "hOffset", Integer.class.getCanonicalName()),
-        ANALYSIS_MIN_SIZE("AnalysisPanel", "minSize", Double.class.getCanonicalName()),
-        ANALYSIS_MAX_SIZE("AnalysisPanel", "maxSize", Double.class.getCanonicalName()),
-        ANALYSIS_MIN_CIRCULARITY("AnalysisPanel", "minCirc", Double.class.getCanonicalName()),
-        ANALYSIS_MAX_CIRCULARITY("AnalysisPanel", "maxCirc", Double.class.getCanonicalName()),
-        ANALYSIS_INFINITY("AnalysisPanel", "infinity", Boolean.class.getCanonicalName());
+        MAIN_VIDEO_FILE(Panels.SPOT_METRICS_FRAME, "videoFile"),
+        MAIN_TRACKS_MAP(Panels.SPOTS_PANEL, "tracksMap"),
+        MAIN_VIDEO_DATA(Panels.SPOTS_PANEL, "imagePlus"),
+        MAIN_VIDEO_COLOR_DATA(Panels.SPOTS_PANEL, "imagePlusColor"),
+        VIEWER_FLASH_FRAME(Panels.VIEWER_PANEL, "flashFrame"),
+        VIEWER_VIDEO_SELECTION(Panels.VIEWER_PANEL, "videoSelection"),
+        PROCESSING_SUBTRACT_BACKGROUND(Panels.PROCESSING_PANEL, "subtractBackground"),
+        PROCESSING_DARK_BACKGROUND(Panels.PROCESSING_PANEL, "darkBackground"),
+        PROCESSING_THRESHOLD_METHOD(Panels.PROCESSING_PANEL, "thresholdMethod"),
+        FLASH_DETECT_MODE(Panels.FLASH_PANEL, "flashDetectMode"),
+        FLASH_OFFSET_BEFORE(Panels.FLASH_PANEL, "offsetBefore"),
+        FLASH_OFFSET_AFTER(Panels.FLASH_PANEL, "offsetAfter"),
+        FLASH_DETECT(Panels.FLASH_PANEL, "detectFlash"),
+        FLASH_DELETE_ONLY(Panels.FLASH_PANEL, "deleteFlashOnly"),
+        TRACK_BLOB_DIAMETER(Panels.TRACKING_PANEL, "blobDiameter"),
+        TRACK_BLOB_THRESHOLD(Panels.TRACKING_PANEL, "blobThreshold"),
+        TRACK_LINKING_MAX_DISTANCE(Panels.TRACKING_PANEL, "linkingMaxDistance"),
+        TRACK_GAP_CLOSING_MAX_DISTANCE(Panels.TRACKING_PANEL, "gapClosingMaxDistance"),
+        TRACK_GAP_CLOSING_MAX_FRAME_GAP(Panels.TRACKING_PANEL, "gapClosingMaxFrameGap"),
+        TRACK_INITIAL_SPOT_FILTER_VALUE(Panels.TRACKING_PANEL, "initialSpotFilterValue"),
+        ANALYSIS_X_OFFSET(Panels.ANALYSIS_PANEL, "xOffset"),
+        ANALYSIS_Y_OFFSET(Panels.ANALYSIS_PANEL, "yOffset"),
+        ANALYSIS_W_OFFSET(Panels.ANALYSIS_PANEL, "wOffset"),
+        ANALYSIS_H_OFFSET(Panels.ANALYSIS_PANEL, "hOffset"),
+        ANALYSIS_MIN_SIZE(Panels.ANALYSIS_PANEL, "minSize"),
+        ANALYSIS_MAX_SIZE(Panels.ANALYSIS_PANEL, "maxSize"),
+        ANALYSIS_MIN_CIRCULARITY(Panels.ANALYSIS_PANEL, "minCirc"),
+        ANALYSIS_MAX_CIRCULARITY(Panels.ANALYSIS_PANEL, "maxCirc"),
+        ANALYSIS_INFINITY(Panels.ANALYSIS_PANEL, "infinity");
         
-        private final String panelName;
-        private final String keyName;
-        private final String castType;
+        private final Panels panelName;
+        private final String key;
         
-        Savables(String panelName, String keyName, String castType) {
+        Savables(Panels panelName, String key) {
                 this.panelName = panelName;
-                this.keyName = keyName;
-                this.castType = castType;
+                this.key = key;
         }
         
-        public final String getCastType() {
-                return castType;
-        }
-        
-        public final String getPanelName() {
+        public final Panels getPanelName() {
                 return panelName;
         }
         
-        public final String getKeyName() {
-                return keyName;
+        public final String getKey() {
+                return key;
+        }
+        
+        @Override
+        public String toString() {
+                return key;
         }
 }

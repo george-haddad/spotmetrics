@@ -82,11 +82,11 @@ public class ProcessingPanel extends JPanel implements SavablePanel {
         }
 
         @Override
-        public Map<Savables,Object> getSavableData() {
-                Map<Savables,Object> savableData = new HashMap<Savables,Object>();
-                savableData.put(Savables.PROCESSING_SUBTRACT_BACKGROUND, subBackgroundSpinner.getModel().getValue());
-                savableData.put(Savables.PROCESSING_DARK_BACKGROUND, Boolean.valueOf(darkBbgCheckBox.isSelected()));
-                savableData.put(Savables.PROCESSING_THRESHOLD_METHOD, thresholdComboBox.getSelectedItem());
+        public Map<Savables,String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
+                savableData.put(Savables.PROCESSING_SUBTRACT_BACKGROUND, String.valueOf(subBackgroundSpinner.getModel().getValue()));
+                savableData.put(Savables.PROCESSING_DARK_BACKGROUND, String.valueOf(darkBbgCheckBox.isSelected()));
+                savableData.put(Savables.PROCESSING_THRESHOLD_METHOD, String.valueOf(thresholdComboBox.getSelectedItem()));
                 return savableData;
         }
 }

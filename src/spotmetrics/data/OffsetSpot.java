@@ -1,5 +1,7 @@
 package spotmetrics.data;
 
+import java.io.Serializable;
+
 /**
  * 
  * @author George El Haddad (george.dma@gmail.com)
@@ -7,8 +9,10 @@ package spotmetrics.data;
  * Created on: Mar 22, 2016
  *
  */
-public abstract class OffsetSpot {
+public abstract class OffsetSpot implements Serializable {
 
+        private static final long serialVersionUID = -6407421230656273974L;
+        
         protected int xOffset = 0;
         protected int yOffset = 0;
         protected int w = 0;
