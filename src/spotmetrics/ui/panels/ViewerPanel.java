@@ -111,4 +111,19 @@ public class ViewerPanel extends AbstractActionListenerPanel implements SavableP
                 savableData.put(Savables.VIEWER_VIDEO_SELECTION, videoSelectField.getText());
                 return savableData;
         }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.VIEWER_FLASH_FRAME)) {
+                        String value = savableData.get(Savables.VIEWER_FLASH_FRAME);
+                        setFlashFrame(value);
+                }
+                
+                if(savableData.containsKey(Savables.VIEWER_VIDEO_SELECTION)) {
+                        String value = savableData.get(Savables.VIEWER_VIDEO_SELECTION);
+                        setVideoSelectRange(value);
+                }
+                
+                cropVideoButton.setEnabled(false);
+        }
 }

@@ -89,4 +89,22 @@ public class ProcessingPanel extends JPanel implements SavablePanel {
                 savableData.put(Savables.PROCESSING_THRESHOLD_METHOD, String.valueOf(thresholdComboBox.getSelectedItem()));
                 return savableData;
         }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.PROCESSING_SUBTRACT_BACKGROUND)) {
+                        String value = savableData.get(Savables.PROCESSING_SUBTRACT_BACKGROUND);
+                        subBackgroundSpinner.getModel().setValue(Integer.valueOf(value));
+                }
+                
+                if(savableData.containsKey(Savables.PROCESSING_DARK_BACKGROUND)) {
+                        String value = savableData.get(Savables.PROCESSING_DARK_BACKGROUND);
+                        darkBbgCheckBox.setSelected(Boolean.parseBoolean(value));
+                }
+                
+                if(savableData.containsKey(Savables.PROCESSING_THRESHOLD_METHOD)) {
+                        String value = savableData.get(Savables.PROCESSING_THRESHOLD_METHOD);
+                        thresholdComboBox.setSelectedItem(value);
+                }
+        }
 }

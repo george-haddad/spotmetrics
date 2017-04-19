@@ -241,4 +241,54 @@ public class FlashPanel extends JPanel implements SavablePanel {
                 savableData.put(Savables.FLASH_DELETE_ONLY, String.valueOf(deleteFlashOnlyCheckBox.isSelected()));
                 return savableData;
         }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.FLASH_DETECT_MODE)) {
+                        String value = savableData.get(Savables.FLASH_DETECT_MODE);
+                        switch(value) {
+                                case "Strict": {
+                                        flashDetectModeComboBox.setSelectedItem(FlashDetect.STRICT);
+                                        break;
+                                }
+                                
+                                case "Semi-Strict": {
+                                        flashDetectModeComboBox.setSelectedItem(FlashDetect.SEMISTRICT);
+                                        break;
+                                }
+                                
+                                case "Relaxed": {
+                                        flashDetectModeComboBox.setSelectedItem(FlashDetect.RELAXED);
+                                        break;
+                                }
+                                
+                                default: {
+                                        flashDetectModeComboBox.setSelectedItem(FlashDetect.STRICT);
+                                        break;
+                                }
+                        }
+                }
+                
+                if(savableData.containsKey(Savables.FLASH_DETECT)) {
+                        String value = savableData.get(Savables.FLASH_DETECT);
+                        detectFlashCheckBox.setSelected(Boolean.parseBoolean(value));
+                        detectFlashCheckBox_actionPerformed();
+                }
+                
+                if(savableData.containsKey(Savables.FLASH_OFFSET_BEFORE)) {
+                        String value = savableData.get(Savables.FLASH_OFFSET_BEFORE);
+                        offsetBeforeSlider.setValue(Integer.parseInt(value));
+                }
+                
+                if(savableData.containsKey(Savables.FLASH_OFFSET_AFTER)) {
+                        String value = savableData.get(Savables.FLASH_OFFSET_AFTER);
+                        offsetAfterSlider.setValue(Integer.parseInt(value));
+                }
+                
+                if(savableData.containsKey(Savables.FLASH_DELETE_ONLY)) {
+                        String value = savableData.get(Savables.FLASH_DELETE_ONLY);
+                        deleteFlashOnlyCheckBox.setSelected(Boolean.parseBoolean(value));
+                        detectFlashCheckBox_actionPerformed();
+                }
+        }
 }

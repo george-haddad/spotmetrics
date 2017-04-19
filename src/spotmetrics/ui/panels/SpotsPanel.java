@@ -13,12 +13,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.HashMap;
+import java.util.InvalidPropertiesFormatException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -26,6 +28,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -45,8 +48,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
+import com.google.gson.stream.JsonReader;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Overlay;
@@ -64,6 +66,7 @@ import spotmetrics.data.save.Panels;
 import spotmetrics.data.save.Savables;
 import spotmetrics.ui.SpotMetricsFrame;
 import spotmetrics.ui.UITool;
+import spotmetrics.ui.file.FileOpen;
 import spotmetrics.ui.file.FileSave;
 
 /**
@@ -247,30 +250,19 @@ public class SpotsPanel extends JPanel {
                         props.put(Savables.ANALYSIS_INFINITY.getKey(), saveData.get(Savables.ANALYSIS_INFINITY));
                         
                         FileOutputStream fos = null;
-                        ObjectOutputStream oos = null;
+                        FileWriter jfos = null;
+                        String jsonStr = null;
                         try {
                                 fos = new FileOutputStream(new File(saveLocation.getAbsolutePath()+File.separator+"config.xml"));
                                 props.storeToXML(fos, "SpotMetrics Panel Configuraitons", "UTF-8");
                                 fos.flush();
                                 
-                                oos = new ObjectOutputStream(new FileOutputStream(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.bin")));
-                                oos.writeObject(tracksMap);
-                                oos.flush();
-                                
                                 GsonBuilder builder = new GsonBuilder();
                                 Gson gson = builder.create();
-                                String jsonStr = gson.toJson(tracksMap);
-                                FileWriter jfos = new FileWriter(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.json"));
+                                jsonStr = gson.toJson(tracksMap);
+                                jfos = new FileWriter(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.json"));
                                 jfos.write(jsonStr);
                                 jfos.flush();
-                                jfos.close();
-                                
-                                XStream xstream = new XStream(new StaxDriver());
-                                String xmlStr = xstream.toXML(tracksMap);
-                                FileWriter xfos = new FileWriter(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.xml"));
-                                xfos.write(xmlStr);
-                                xfos.flush();
-                                xfos.close();
                                 
                                 IJ.save(imagePlus, saveLocation.getAbsolutePath()+File.separator+"orig_"+parentFrame.getVideoFile().getName());
                                 IJ.save(imagePlusColor, saveLocation.getAbsolutePath()+File.separator+"orig_color_"+parentFrame.getVideoFile().getName());
@@ -292,13 +284,14 @@ public class SpotsPanel extends JPanel {
                                         }
                                 }
                                 
-                                if(oos != null) {
+                                if(jfos != null) {
                                         try {
-                                                oos.close();
+                                                jfos.close();
                                         }
                                         catch(IOException e) {}
                                         finally {
-                                                oos = null;
+                                                jfos = null;
+                                                jsonStr = null;
                                         }
                                 }
                                 
@@ -308,7 +301,119 @@ public class SpotsPanel extends JPanel {
         }
         
         private final void openButton_actionPerformed() {
-                
+                File projectFolder = FileOpen.getFile("Select the Project Folder", new File(System.getProperty("user.home")).getAbsolutePath(), JFileChooser.DIRECTORIES_ONLY, null, (String[])null);
+                if(projectFolder != null) {
+                        File configXmlFile = new File(projectFolder.getAbsolutePath()+File.separator+"config.xml");
+                        FileInputStream fis = null;
+                        Properties props = null;
+                        try {
+                                fis = new FileInputStream(configXmlFile);
+                                props = new Properties();
+                                props.loadFromXML(fis);
+                        }
+                        catch(FileNotFoundException fnfe) {
+                                fnfe.printStackTrace();
+                        }
+                        catch(InvalidPropertiesFormatException ipfe) {
+                                ipfe.printStackTrace();
+                        }
+                        catch(IOException ioe) {
+                                ioe.printStackTrace();
+                        }
+                        finally {
+                                if(fis != null) {
+                                        try {
+                                                fis.close();
+                                        }
+                                        catch(IOException e) {}
+                                        finally {
+                                                fis = null;
+                                        }
+                                }
+                        }
+                        
+                        Map<Savables,String> viewerSavableMap = new HashMap<Savables, String>();
+                        viewerSavableMap.put(Savables.VIEWER_FLASH_FRAME, props.getProperty(Savables.VIEWER_FLASH_FRAME.getKey()));
+                        viewerSavableMap.put(Savables.VIEWER_VIDEO_SELECTION, props.getProperty(Savables.VIEWER_VIDEO_SELECTION.getKey()));
+                        
+                        Map<Savables,String> flashSavableMap = new HashMap<Savables, String>();
+                        flashSavableMap.put(Savables.FLASH_DETECT_MODE, props.getProperty(Savables.FLASH_DETECT_MODE.getKey()));
+                        flashSavableMap.put(Savables.FLASH_OFFSET_BEFORE, props.getProperty(Savables.FLASH_OFFSET_BEFORE.getKey()));
+                        flashSavableMap.put(Savables.FLASH_OFFSET_AFTER, props.getProperty(Savables.FLASH_OFFSET_AFTER.getKey()));
+                        flashSavableMap.put(Savables.FLASH_DETECT, props.getProperty(Savables.FLASH_DETECT.getKey()));
+                        flashSavableMap.put(Savables.FLASH_DELETE_ONLY, props.getProperty(Savables.FLASH_DELETE_ONLY.getKey()));
+                        
+                        Map<Savables,String> analysisSavableMap = new HashMap<Savables, String>();
+                        analysisSavableMap.put(Savables.ANALYSIS_X_OFFSET, props.getProperty(Savables.ANALYSIS_X_OFFSET.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_Y_OFFSET, props.getProperty(Savables.ANALYSIS_Y_OFFSET.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_W_OFFSET, props.getProperty(Savables.ANALYSIS_W_OFFSET.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_H_OFFSET, props.getProperty(Savables.ANALYSIS_H_OFFSET.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_MIN_SIZE, props.getProperty(Savables.ANALYSIS_MIN_SIZE.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_MAX_SIZE, props.getProperty(Savables.ANALYSIS_MAX_SIZE.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_MIN_CIRCULARITY, props.getProperty(Savables.ANALYSIS_MIN_CIRCULARITY.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_MAX_CIRCULARITY, props.getProperty(Savables.ANALYSIS_MAX_CIRCULARITY.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_INFINITY, props.getProperty(Savables.ANALYSIS_INFINITY.getKey()));
+                        
+                        Map<Savables,String> processingSavableMap = new HashMap<Savables, String>();
+                        processingSavableMap.put(Savables.PROCESSING_SUBTRACT_BACKGROUND, props.getProperty(Savables.PROCESSING_SUBTRACT_BACKGROUND.getKey()));
+                        processingSavableMap.put(Savables.PROCESSING_DARK_BACKGROUND, props.getProperty(Savables.PROCESSING_DARK_BACKGROUND.getKey()));
+                        processingSavableMap.put(Savables.PROCESSING_THRESHOLD_METHOD, props.getProperty(Savables.PROCESSING_THRESHOLD_METHOD.getKey()));
+                        
+                        Map<Savables,String> trackingSavableMap = new HashMap<Savables, String>();
+                        trackingSavableMap.put(Savables.TRACK_BLOB_DIAMETER, props.getProperty(Savables.TRACK_BLOB_DIAMETER.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_BLOB_THRESHOLD, props.getProperty(Savables.TRACK_BLOB_THRESHOLD.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_LINKING_MAX_DISTANCE, props.getProperty(Savables.TRACK_LINKING_MAX_DISTANCE.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE, props.getProperty(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP, props.getProperty(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE, props.getProperty(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE.getKey()));
+                        
+                        Map<Savables,String> frameSavableMap = new HashMap<Savables, String>();
+                        frameSavableMap.put(Savables.MAIN_VIDEO_FILE, props.getProperty(Savables.MAIN_VIDEO_FILE.getKey()));
+                        
+                        parentFrame.setSavableDataPanel(Panels.SPOT_METRICS_FRAME, frameSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.ANALYSIS_PANEL, analysisSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.FLASH_PANEL, flashSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.PROCESSING_PANEL, processingSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.TRACKING_PANEL, trackingSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.VIEWER_PANEL, viewerSavableMap);
+                        
+                        
+                        // Read TracksMap.json
+                        
+                        File tracksMapFile = new File(projectFolder.getAbsolutePath()+File.separator+"tracksMap.json");
+                        GsonBuilder builder = new GsonBuilder();
+                        Gson gson = builder.create();
+                        JsonReader jReader = null;
+                        HashMap<String, MyTrack> myTracksMap = null;
+                        try {
+                                jReader = new JsonReader(new FileReader(tracksMapFile));
+                                myTracksMap = gson.fromJson(jReader, HashMap.class);
+                        }
+                        catch(FileNotFoundException e) {
+                                e.printStackTrace();
+                        }
+                        finally {
+                                if(jReader != null) {
+                                        try {
+                                                jReader.close();
+                                        }
+                                        catch(IOException e) {}
+                                        finally {
+                                                jReader = null;
+                                        }
+                                }
+                        }
+                        
+                        clearSpotTreeSelection();
+                        setSpotTracks(myTracksMap);
+                        setAnalysisOptions(parentFrame.getAnalysisOptions());
+                        
+//                        spotsPanel.clearSpotTreeSelection();
+//                        spotsPanel.setSpotTracks(tracksMap, analysisPanel.getXoffset(), analysisPanel.getYoffset(), analysisPanel.getWoffset(), analysisPanel.getHoffset());
+//                        spotsPanel.setImagePlus(engine.getImagePlus());
+//                        spotsPanel.setImagePlusColor(engine.getImagePlusColor());
+//                        spotsPanel.setAnalysisOptions(analysisPanel.getAnalysisOptions());
+                }
         }
 
         private final void spotTree_rightClickMouseReleased(MouseEvent me) {
@@ -671,11 +776,17 @@ public class SpotsPanel extends JPanel {
                         }
                 }
         }
-
-        public final void setSpotTracks(HashMap<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h) {
+        
+        private final void setSpotTracks(HashMap<String, MyTrack> tracksMap) {
+                setSpotTracks(tracksMap, 0, 0, 0, 0, false);
+        }
+        
+        public final void setSpotTracks(HashMap<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h, boolean normalize) {
                 this.tracksMap = tracksMap;
-
-                normalizeTracks(this.tracksMap, xOffset, yOffset, w, h);
+                
+                if(normalize) {
+                        normalizeTracks(this.tracksMap, xOffset, yOffset, w, h);
+                }
 
                 Iterator<MyTrack> iter = tracksMap.values().iterator();
                 while (iter.hasNext()) {
@@ -717,6 +828,7 @@ public class SpotsPanel extends JPanel {
                                         @Override
                                         public void run() {
                                                 saveButton.setEnabled(false);
+                                                openButton.setEnabled(false);
                                                 excelButton.setEnabled(false);
                                                 overlayButton.setEnabled(false);
                                                 parentFrame.setProcessButtonEnabled(false);
@@ -731,6 +843,7 @@ public class SpotsPanel extends JPanel {
                                         @Override
                                         public void run() {
                                                 saveButton.setEnabled(true);
+                                                openButton.setEnabled(true);
                                                 excelButton.setEnabled(true);
                                                 overlayButton.setEnabled(true);
                                                 parentFrame.setProcessButtonEnabled(true);
@@ -755,6 +868,7 @@ public class SpotsPanel extends JPanel {
                                 @Override
                                 public void run() {
                                         saveButton.setEnabled(false);
+                                        openButton.setEnabled(false);
                                         excelButton.setEnabled(false);
                                         overlayButton.setEnabled(false);
                                         parentFrame.setProcessButtonEnabled(false);
@@ -775,6 +889,7 @@ public class SpotsPanel extends JPanel {
                                         @Override
                                         public void run() {
                                                 saveButton.setEnabled(true);
+                                                openButton.setEnabled(true);
                                                 excelButton.setEnabled(true);
                                                 overlayButton.setEnabled(true);
                                                 parentFrame.setProcessButtonEnabled(true);
@@ -797,6 +912,7 @@ public class SpotsPanel extends JPanel {
                                 @Override
                                 public void run() {
                                         saveButton.setEnabled(false);
+                                        openButton.setEnabled(false);
                                         excelButton.setEnabled(false);
                                         overlayButton.setEnabled(false);
                                         parentFrame.setProcessButtonEnabled(false);
@@ -831,6 +947,7 @@ public class SpotsPanel extends JPanel {
                                                 @Override
                                                 public void run() {
                                                         saveButton.setEnabled(true);
+                                                        openButton.setEnabled(true);
                                                         excelButton.setEnabled(true);
                                                         overlayButton.setEnabled(true);
                                                         parentFrame.setProcessButtonEnabled(true);
@@ -848,6 +965,7 @@ public class SpotsPanel extends JPanel {
                         @Override
                         public void run() {
                                 saveButton.setEnabled(false);
+                                openButton.setEnabled(false);
                                 excelButton.setEnabled(false);
                                 overlayButton.setEnabled(false);
                                 parentFrame.setProcessButtonEnabled(false);
@@ -882,6 +1000,7 @@ public class SpotsPanel extends JPanel {
                         @Override
                         public void run() {
                                 saveButton.setEnabled(true);
+                                openButton.setEnabled(true);
                                 excelButton.setEnabled(true);
                                 overlayButton.setEnabled(true);
                                 parentFrame.setProcessButtonEnabled(true);

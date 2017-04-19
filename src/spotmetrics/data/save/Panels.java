@@ -9,7 +9,6 @@ package spotmetrics.data.save;
  */
 public enum Panels {
         SPOT_METRICS_FRAME,
-        SPOTS_PANEL,
         VIEWER_PANEL,
         PROCESSING_PANEL,
         FLASH_PANEL,

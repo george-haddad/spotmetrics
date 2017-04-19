@@ -97,10 +97,14 @@ public class AnalysisPanel extends JPanel implements SavablePanel {
 
                 double spacer = 5;
                 double[][] layoutSize1 = {
-                                //                   0,      1,                      2,      3,                     4,      5,                     6,      7,               8
-                                { TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.FILL }, { TableLayout.PREFERRED, //0
-                                                spacer, TableLayout.PREFERRED  //2
-                                } };
+                                //                    0,      1,                     2,      3,                     4,      5,                     6,      7,               8
+                                { TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.FILL },
+                                {
+                                  TableLayout.PREFERRED, //0
+                                  spacer,
+                                  TableLayout.PREFERRED  //2
+                                }
+                };
 
                 JPanel analysisPanel = new JPanel(new TableLayout(layoutSize1));
                 analysisPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder("Particle Analyzer")));
@@ -257,5 +261,54 @@ public class AnalysisPanel extends JPanel implements SavablePanel {
                 savableData.put(Savables.ANALYSIS_MAX_CIRCULARITY, circMaxField.getText());
                 savableData.put(Savables.ANALYSIS_INFINITY, String.valueOf(infinityCheckBox.isSelected()));
                 return savableData;
+        }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.ANALYSIS_X_OFFSET)) {
+                        String value = savableData.get(Savables.ANALYSIS_X_OFFSET);
+                        xOffsetField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_Y_OFFSET)) {
+                        String value = savableData.get(Savables.ANALYSIS_Y_OFFSET);
+                        yOffsetField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_W_OFFSET)) {
+                        String value = savableData.get(Savables.ANALYSIS_W_OFFSET);
+                        wOffsetField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_H_OFFSET)) {
+                        String value = savableData.get(Savables.ANALYSIS_H_OFFSET);
+                        hOffsetField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_MIN_SIZE)) {
+                        String value = savableData.get(Savables.ANALYSIS_MIN_SIZE);
+                        minSizeField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_MAX_SIZE)) {
+                        String value = savableData.get(Savables.ANALYSIS_MAX_SIZE);
+                        maxSizeField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_MIN_CIRCULARITY)) {
+                        String value = savableData.get(Savables.ANALYSIS_MIN_CIRCULARITY);
+                        circMinField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_MAX_CIRCULARITY)) {
+                        String value = savableData.get(Savables.ANALYSIS_MAX_CIRCULARITY);
+                        circMaxField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_INFINITY)) {
+                        String value = savableData.get(Savables.ANALYSIS_INFINITY);
+                        infinityCheckBox.setSelected(Boolean.parseBoolean(value));
+                        infinityCheckBox_actionPerformed();
+                }
         }
 }

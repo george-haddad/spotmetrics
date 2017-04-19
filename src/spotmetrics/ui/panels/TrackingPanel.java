@@ -221,4 +221,37 @@ public class TrackingPanel extends JPanel implements SavablePanel {
                 savableData.put(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE, String.valueOf(initialSpotFilterValueSpinner.getModel().getValue()));
                 return savableData;
         }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.TRACK_BLOB_DIAMETER)) {
+                        String value = savableData.get(Savables.TRACK_BLOB_DIAMETER);
+                        blobDiameterSlider.getModel().setValue(Integer.parseInt(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_BLOB_THRESHOLD)) {
+                        String value = savableData.get(Savables.TRACK_BLOB_THRESHOLD);
+                        blobThresholdSlider.getModel().setValue(Integer.parseInt(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_LINKING_MAX_DISTANCE)) {
+                        String value = savableData.get(Savables.TRACK_LINKING_MAX_DISTANCE);
+                        linkingMaxDistanceSpinner.getModel().setValue(Integer.valueOf(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE)) {
+                        String value = savableData.get(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE);
+                        gapClosingMaxDistanceSpinner.getModel().setValue(Integer.valueOf(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP)) {
+                        String value = savableData.get(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP);
+                        gapClosingMaxFrameGapSpinner.getModel().setValue(Integer.valueOf(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE)) {
+                        String value = savableData.get(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE);
+                        initialSpotFilterValueSpinner.getModel().setValue(Integer.valueOf(value));
+                }
+        }
 }

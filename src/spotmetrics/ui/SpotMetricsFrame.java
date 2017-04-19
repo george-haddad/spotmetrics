@@ -27,6 +27,7 @@ import javax.swing.UIManager;
 import ij.ImagePlus;
 import spotmetrics.SpotMetrics;
 import spotmetrics.analyzer.AnalysisEngine;
+import spotmetrics.analyzer.AnalysisOptions;
 import spotmetrics.analyzer.FlashDetect;
 import spotmetrics.analyzer.ProcessingOptions;
 import spotmetrics.analyzer.TrackingOptions;
@@ -338,7 +339,7 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
 
                                         if (tracksMap != null) {
                                                 spotsPanel.clearSpotTreeSelection();
-                                                spotsPanel.setSpotTracks(tracksMap, analysisPanel.getXoffset(), analysisPanel.getYoffset(), analysisPanel.getWoffset(), analysisPanel.getHoffset());
+                                                spotsPanel.setSpotTracks(tracksMap, analysisPanel.getXoffset(), analysisPanel.getYoffset(), analysisPanel.getWoffset(), analysisPanel.getHoffset(), true);
                                                 spotsPanel.setImagePlus(engine.getImagePlus());
                                                 spotsPanel.setImagePlusColor(engine.getImagePlusColor());
                                                 spotsPanel.setAnalysisOptions(analysisPanel.getAnalysisOptions());
@@ -395,6 +396,10 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
                 return videoFile;
         }
         
+        public AnalysisOptions getAnalysisOptions() {
+                return analysisPanel.getAnalysisOptions();
+        }
+        
         public Map<Savables, String> getSavableDataPanel(Panels panelName) throws NullPointerException {
                 if(panelName == null) {
                         throw new NullPointerException("panelName cannot be null");
@@ -429,19 +434,50 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
                         }
                 }
         }
-
-        public static final void main(String... args) {
-
-                try {
-                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        
+        public void setSavableDataPanel(Panels panelName, Map<Savables, String> savableData) throws NullPointerException {
+                if(panelName == null) {
+                        throw new NullPointerException("panelName cannot be null");
                 }
-                catch (Exception e) {
-                        //Will use the standard Look&Feel
+                
+                if(savableData == null) {
+                        throw new NullPointerException("savableData cannot be null");
                 }
-
-                SpotMetricsFrame frame = new SpotMetricsFrame();
-                UITool.center(frame);
-                frame.setVisible(true);
+                
+                switch(panelName) {
+                        case VIEWER_PANEL: {
+                                viewerPanel.setSavableData(savableData);
+                                break;
+                        }
+                        case FLASH_PANEL: {
+                                flashPanel.setSavableData(savableData);
+                                break;
+                        }
+                        
+                        case ANALYSIS_PANEL: {
+                                analysisPanel.setSavableData(savableData);
+                                break;
+                        }
+                        
+                        case TRACKING_PANEL: {
+                                trackingPanel.setSavableData(savableData);
+                                break;
+                        }
+                        
+                        case PROCESSING_PANEL: {
+                                processingPanel.setSavableData(savableData);
+                                break;
+                        }
+                        
+                        case SPOT_METRICS_FRAME: {
+                                setSavableData(savableData);
+                                break;
+                        }
+                        
+                        default: {
+                                break;
+                        }
+                }
         }
 
         @Override
@@ -455,5 +491,27 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
                 }
                 
                 return savableData;
+        }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.MAIN_VIDEO_FILE)) {
+                        String videoFilePath = savableData.get(Savables.MAIN_VIDEO_FILE);
+                        videoFile = new File(videoFilePath);
+                        videoField.setText(videoFilePath);
+                }
+        }
+        
+        public static final void main(String... args) {
+                try {
+                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                }
+                catch (Exception e) {
+                        //Will use the standard Look&Feel
+                }
+
+                SpotMetricsFrame frame = new SpotMetricsFrame();
+                UITool.center(frame);
+                frame.setVisible(true);
         }
 }
