@@ -43,6 +43,7 @@ import spotmetrics.ui.panels.ProcessingPanel;
 import spotmetrics.ui.panels.SpotsPanel;
 import spotmetrics.ui.panels.TrackingPanel;
 import spotmetrics.ui.panels.ViewerPanel;
+import spotmetrics.util.VideoUtil;
 
 
 /**
@@ -229,7 +230,8 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
                 Thread t = new Thread(new Runnable() {
                         @Override
                         public void run() {
-                                ImagePlus imagePlus = engine.loadVideo(videoFile);
+                                updateProgressBar("Loading video file ...");
+                                ImagePlus imagePlus = VideoUtil.loadVideo(videoFile);
                                 engine.setImagePlus(imagePlus);
                                 imagePlus.show();
                                 
@@ -335,7 +337,7 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
                                         engine.setProcessingOptions(procOptions);
                                         engine.processVideo();
                                         engine.setTrackingOptions(trackOptions);
-                                        HashMap<String, MyTrack> tracksMap = engine.trackSpots();
+                                        Map<String, MyTrack> tracksMap = engine.trackSpots();
 
                                         if (tracksMap != null) {
                                                 spotsPanel.clearSpotTreeSelection();
@@ -385,11 +387,21 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
         }
 
         public void setProcessButtonEnabled(boolean enabled) {
-                loadVideoButton.setEnabled(enabled);
+                EventQueue.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                                loadVideoButton.setEnabled(enabled);
+                        }
+                });
         }
 
         public void setProgressBarIndeterminate(boolean indeterminate) {
-                progressBar.setIndeterminate(indeterminate);
+                EventQueue.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                                progressBar.setIndeterminate(indeterminate);
+                        }
+                });
         }
 
         public File getVideoFile() {
@@ -484,10 +496,12 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
         public Map<Savables, String> getSavableData() {
                 Map<Savables,String> savableData = new HashMap<Savables,String>();
                 if(getVideoFile() != null) {
-                        savableData.put(Savables.MAIN_VIDEO_FILE, getVideoFile().getAbsolutePath());
+                        savableData.put(Savables.MAIN_VIDEO_FILE_PATH, getVideoFile().getParent());
+                        savableData.put(Savables.MAIN_VIDEO_FILE_NAME, getVideoFile().getName());
                 }
                 else {
-                        savableData.put(Savables.MAIN_VIDEO_FILE, "");
+                        savableData.put(Savables.MAIN_VIDEO_FILE_PATH, "");
+                        savableData.put(Savables.MAIN_VIDEO_FILE_NAME, "");
                 }
                 
                 return savableData;
@@ -495,10 +509,11 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
 
         @Override
         public void setSavableData(Map<Savables, String> savableData) {
-                if(savableData.containsKey(Savables.MAIN_VIDEO_FILE)) {
-                        String videoFilePath = savableData.get(Savables.MAIN_VIDEO_FILE);
-                        videoFile = new File(videoFilePath);
-                        videoField.setText(videoFilePath);
+                if(savableData.containsKey(Savables.MAIN_VIDEO_FILE_PATH)) {
+                        String videoFilePath = savableData.get(Savables.MAIN_VIDEO_FILE_PATH);
+                        String videoFileName = savableData.get(Savables.MAIN_VIDEO_FILE_NAME);
+                        videoFile = new File(videoFilePath+File.separator+videoFileName);
+                        videoField.setText(videoFile.getAbsolutePath());
                 }
         }
         

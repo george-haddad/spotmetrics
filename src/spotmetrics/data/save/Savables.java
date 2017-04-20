@@ -8,7 +8,8 @@ package spotmetrics.data.save;
  *
  */
 public enum Savables {
-        MAIN_VIDEO_FILE(Panels.SPOT_METRICS_FRAME, "frame.videoFile"),
+        MAIN_VIDEO_FILE_PATH(Panels.SPOT_METRICS_FRAME, "frame.videoFilePath"),
+        MAIN_VIDEO_FILE_NAME(Panels.SPOT_METRICS_FRAME, "frame.videoFileName"),
         VIEWER_FLASH_FRAME(Panels.VIEWER_PANEL, "panel.viewer.flashFrame"),
         VIEWER_VIDEO_SELECTION(Panels.VIEWER_PANEL, "panel.viewer.videoSelection"),
         PROCESSING_SUBTRACT_BACKGROUND(Panels.PROCESSING_PANEL, "panel.processing.subtractBackground"),

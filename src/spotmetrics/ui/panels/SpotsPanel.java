@@ -46,9 +46,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Overlay;
@@ -68,6 +67,7 @@ import spotmetrics.ui.SpotMetricsFrame;
 import spotmetrics.ui.UITool;
 import spotmetrics.ui.file.FileOpen;
 import spotmetrics.ui.file.FileSave;
+import spotmetrics.util.VideoUtil;
 
 /**
  * 
@@ -94,7 +94,7 @@ public class SpotsPanel extends JPanel {
          * Key: "Track_+trackId"<br>
          * Value: MyTrack
          */
-        private HashMap<String, MyTrack> tracksMap = null;
+        private Map<String, MyTrack> tracksMap = null;
 
         private boolean inspectingTrack = false;
         private ImagePlus imagePlus = null;
@@ -173,7 +173,13 @@ public class SpotsPanel extends JPanel {
                 saveButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                                saveButton_actionPerformed();
+                                Thread t = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                                saveButton_actionPerformed();
+                                        }
+                                });
+                                t.start();
                         }
                 });
                 
@@ -181,7 +187,13 @@ public class SpotsPanel extends JPanel {
                 openButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                                openButton_actionPerformed();
+                                Thread t = new Thread() {
+                                        @Override
+                                        public void run() {
+                                                openButton_actionPerformed();
+                                        }
+                                };
+                                t.start();
                         }
                 });
                 
@@ -206,13 +218,22 @@ public class SpotsPanel extends JPanel {
         private final void saveButton_actionPerformed() {
                 File saveLocation = FileSave.saveFile("Save Analysis", new File(System.getProperty("user.home")), "Project Folder", "", true);
                 if(saveLocation != null) {
-                        System.out.println("Save location: "+saveLocation.getAbsolutePath());
-                        saveLocation.mkdirs();
+                        EventQueue.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                        saveButton.setEnabled(false);
+                                }
+                        });
                         
+                        parentFrame.setProgressBarIndeterminate(true);
+                        parentFrame.updateProgressBar("Saving configuration data ...");
+                        
+                        saveLocation.mkdirs();
                         Properties props = new Properties();
                         
                         Map<Savables,String> saveData = parentFrame.getSavableDataPanel(Panels.SPOT_METRICS_FRAME);
-                        props.put(Savables.MAIN_VIDEO_FILE.getKey(), saveData.get(Savables.MAIN_VIDEO_FILE));
+                        props.put(Savables.MAIN_VIDEO_FILE_PATH.getKey(), saveData.get(Savables.MAIN_VIDEO_FILE_PATH));
+                        props.put(Savables.MAIN_VIDEO_FILE_NAME.getKey(), saveData.get(Savables.MAIN_VIDEO_FILE_NAME));
                         
                         saveData = parentFrame.getSavableDataPanel(Panels.VIEWER_PANEL);
                         props.put(Savables.VIEWER_FLASH_FRAME.getKey(), saveData.get(Savables.VIEWER_FLASH_FRAME));
@@ -250,21 +271,22 @@ public class SpotsPanel extends JPanel {
                         props.put(Savables.ANALYSIS_INFINITY.getKey(), saveData.get(Savables.ANALYSIS_INFINITY));
                         
                         FileOutputStream fos = null;
-                        FileWriter jfos = null;
-                        String jsonStr = null;
+                        FileWriter xWriter = null;
                         try {
                                 fos = new FileOutputStream(new File(saveLocation.getAbsolutePath()+File.separator+"config.xml"));
-                                props.storeToXML(fos, "SpotMetrics Panel Configuraitons", "UTF-8");
+                                props.storeToXML(fos, "SpotMetrics Panel Configurations", "UTF-8");
                                 fos.flush();
                                 
-                                GsonBuilder builder = new GsonBuilder();
-                                Gson gson = builder.create();
-                                jsonStr = gson.toJson(tracksMap);
-                                jfos = new FileWriter(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.json"));
-                                jfos.write(jsonStr);
-                                jfos.flush();
+                                parentFrame.updateProgressBar("Saving tracks data ...");
+                                xWriter = new FileWriter(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.xml"));
+                                XStream xstream = new XStream(new StaxDriver());
+                                xstream.toXML(tracksMap, xWriter);
+                                xWriter.flush();
                                 
+                                parentFrame.updateProgressBar("Saving video data ...");
                                 IJ.save(imagePlus, saveLocation.getAbsolutePath()+File.separator+"orig_"+parentFrame.getVideoFile().getName());
+                                
+                                parentFrame.updateProgressBar("Saving color video data ...");
                                 IJ.save(imagePlusColor, saveLocation.getAbsolutePath()+File.separator+"orig_color_"+parentFrame.getVideoFile().getName());
                         }
                         catch(FileNotFoundException fnne) {
@@ -284,28 +306,48 @@ public class SpotsPanel extends JPanel {
                                         }
                                 }
                                 
-                                if(jfos != null) {
+                                if(xWriter != null) {
                                         try {
-                                                jfos.close();
+                                                xWriter.close();
                                         }
                                         catch(IOException e) {}
                                         finally {
-                                                jfos = null;
-                                                jsonStr = null;
+                                                xWriter = null;
                                         }
                                 }
                                 
-                                JOptionPane.showMessageDialog(this, "State saved");
+                                JOptionPane.showMessageDialog(this, "Project State Saved");
                         }
+                        
+                        parentFrame.updateProgressBar("Ready");
+                        parentFrame.setProgressBarIndeterminate(false);
+                        
+                        EventQueue.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                        saveButton.setEnabled(true);
+                                }
+                        });
                 }
         }
         
         private final void openButton_actionPerformed() {
                 File projectFolder = FileOpen.getFile("Select the Project Folder", new File(System.getProperty("user.home")).getAbsolutePath(), JFileChooser.DIRECTORIES_ONLY, null, (String[])null);
                 if(projectFolder != null) {
+                        EventQueue.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                        openButton.setEnabled(false);
+                                }
+                        });
+                        
+                        parentFrame.setProgressBarIndeterminate(true);
+                        parentFrame.updateProgressBar("Loading configuration data ...");
+                        
                         File configXmlFile = new File(projectFolder.getAbsolutePath()+File.separator+"config.xml");
                         FileInputStream fis = null;
                         Properties props = null;
+                        
                         try {
                                 fis = new FileInputStream(configXmlFile);
                                 props = new Properties();
@@ -330,6 +372,11 @@ public class SpotsPanel extends JPanel {
                                                 fis = null;
                                         }
                                 }
+                        }
+                        
+                        if(props == null) {
+                                JOptionPane.showMessageDialog(this, "There was an error reading the config file", "Read Error", JOptionPane.WARNING_MESSAGE);
+                                return;
                         }
                         
                         Map<Savables,String> viewerSavableMap = new HashMap<Savables, String>();
@@ -368,7 +415,8 @@ public class SpotsPanel extends JPanel {
                         trackingSavableMap.put(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE, props.getProperty(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE.getKey()));
                         
                         Map<Savables,String> frameSavableMap = new HashMap<Savables, String>();
-                        frameSavableMap.put(Savables.MAIN_VIDEO_FILE, props.getProperty(Savables.MAIN_VIDEO_FILE.getKey()));
+                        frameSavableMap.put(Savables.MAIN_VIDEO_FILE_PATH, props.getProperty(Savables.MAIN_VIDEO_FILE_PATH.getKey()));
+                        frameSavableMap.put(Savables.MAIN_VIDEO_FILE_NAME, props.getProperty(Savables.MAIN_VIDEO_FILE_NAME.getKey()));
                         
                         parentFrame.setSavableDataPanel(Panels.SPOT_METRICS_FRAME, frameSavableMap);
                         parentFrame.setSavableDataPanel(Panels.ANALYSIS_PANEL, analysisSavableMap);
@@ -377,42 +425,61 @@ public class SpotsPanel extends JPanel {
                         parentFrame.setSavableDataPanel(Panels.TRACKING_PANEL, trackingSavableMap);
                         parentFrame.setSavableDataPanel(Panels.VIEWER_PANEL, viewerSavableMap);
                         
+                        // Read TracksMap.xml
                         
-                        // Read TracksMap.json
+                        parentFrame.updateProgressBar("Loading tracks data ...");
+                        File tracksMapFile = new File(projectFolder.getAbsolutePath()+File.separator+"tracksMap.xml");
+                        FileReader xReader = null;
                         
-                        File tracksMapFile = new File(projectFolder.getAbsolutePath()+File.separator+"tracksMap.json");
-                        GsonBuilder builder = new GsonBuilder();
-                        Gson gson = builder.create();
-                        JsonReader jReader = null;
-                        HashMap<String, MyTrack> myTracksMap = null;
                         try {
-                                jReader = new JsonReader(new FileReader(tracksMapFile));
-                                myTracksMap = gson.fromJson(jReader, HashMap.class);
+                                xReader = new FileReader(tracksMapFile);
+                                XStream xstream = new XStream(new StaxDriver());
+                                
+                                @SuppressWarnings("unchecked")
+                                Map<String, MyTrack> myTracksMap = (Map<String,MyTrack>)xstream.fromXML(xReader);
+                                
+                                clearSpotTreeSelection();
+                                setSpotTracks(myTracksMap);
+                                setAnalysisOptions(parentFrame.getAnalysisOptions());
                         }
                         catch(FileNotFoundException e) {
                                 e.printStackTrace();
                         }
                         finally {
-                                if(jReader != null) {
+                                if(xReader != null) {
                                         try {
-                                                jReader.close();
+                                                xReader.close();
                                         }
                                         catch(IOException e) {}
                                         finally {
-                                                jReader = null;
+                                                xReader = null;
                                         }
                                 }
                         }
                         
-                        clearSpotTreeSelection();
-                        setSpotTracks(myTracksMap);
-                        setAnalysisOptions(parentFrame.getAnalysisOptions());
+                        File videoFile = new File(projectFolder.getAbsolutePath()+File.separator+"orig_"+props.getProperty(Savables.MAIN_VIDEO_FILE_NAME.getKey()));
+                        File videoColorFile = new File(projectFolder.getAbsolutePath()+File.separator+"orig_color_"+props.getProperty(Savables.MAIN_VIDEO_FILE_NAME.getKey()));
                         
-//                        spotsPanel.clearSpotTreeSelection();
-//                        spotsPanel.setSpotTracks(tracksMap, analysisPanel.getXoffset(), analysisPanel.getYoffset(), analysisPanel.getWoffset(), analysisPanel.getHoffset());
-//                        spotsPanel.setImagePlus(engine.getImagePlus());
-//                        spotsPanel.setImagePlusColor(engine.getImagePlusColor());
-//                        spotsPanel.setAnalysisOptions(analysisPanel.getAnalysisOptions());
+                        parentFrame.updateProgressBar("Loading video file ...");
+                        ImagePlus imagePlus = VideoUtil.loadVideo(videoFile);
+                        
+                        parentFrame.updateProgressBar("Loading color video file ...");
+                        ImagePlus imagePlusColor = VideoUtil.loadVideo(videoColorFile);
+                        
+                        setImagePlus(imagePlus);
+                        setImagePlusColor(imagePlusColor);
+                        
+                        imagePlus.show();
+                        
+                        parentFrame.updateProgressBar("Ready");
+                        parentFrame.setProgressBarIndeterminate(false);
+                        
+                        EventQueue.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                        openButton.setEnabled(true);
+                                }
+                        });
                 }
         }
 
@@ -777,11 +844,11 @@ public class SpotsPanel extends JPanel {
                 }
         }
         
-        private final void setSpotTracks(HashMap<String, MyTrack> tracksMap) {
+        private final void setSpotTracks(Map<String, MyTrack> tracksMap) {
                 setSpotTracks(tracksMap, 0, 0, 0, 0, false);
         }
         
-        public final void setSpotTracks(HashMap<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h, boolean normalize) {
+        public final void setSpotTracks(Map<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h, boolean normalize) {
                 this.tracksMap = tracksMap;
                 
                 if(normalize) {
@@ -805,7 +872,7 @@ public class SpotsPanel extends JPanel {
                 saveButton.setEnabled(true);
         }
 
-        private final void normalizeTracks(HashMap<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h) {
+        private final void normalizeTracks(Map<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h) {
                 Iterator<MyTrack> iter = tracksMap.values().iterator();
                 while (iter.hasNext()) {
                         MyTrack track = iter.next();
@@ -1062,7 +1129,7 @@ public class SpotsPanel extends JPanel {
                 spotTree.clearSelection();
         }
 
-        public final HashMap<String, MyTrack> getSpotTracks() {
+        public final Map<String, MyTrack> getSpotTracks() {
                 return tracksMap;
         }
 
