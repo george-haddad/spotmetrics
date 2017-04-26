@@ -462,6 +462,11 @@ public class SpotsPanel extends JPanel {
                         
                         parentFrame.updateProgressBar("Loading video file ...");
                         ImagePlus imagePlus = VideoUtil.loadVideo(videoFile);
+                        IJ.run(imagePlus, "8-bit", "");
+                        
+                        String darkBg = props.getProperty(Savables.PROCESSING_DARK_BACKGROUND.getKey());
+                        boolean blackBackground = Boolean.parseBoolean(darkBg);
+                        IJ.run(imagePlus, "Convert to Mask", "method=Default background=" + (blackBackground == false ? "Light" : "") + " calculate stack");
                         
                         parentFrame.updateProgressBar("Loading color video file ...");
                         ImagePlus imagePlusColor = VideoUtil.loadVideo(videoColorFile);
