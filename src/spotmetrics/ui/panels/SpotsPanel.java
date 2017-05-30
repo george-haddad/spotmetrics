@@ -284,9 +284,12 @@ public class SpotsPanel extends JPanel {
                                 xWriter.flush();
                                 
                                 parentFrame.updateProgressBar("Saving video data ...");
+                                imagePlus.deleteRoi();
+                                imagePlus.setOverlay(null);
                                 IJ.save(imagePlus, saveLocation.getAbsolutePath()+File.separator+"orig_"+parentFrame.getVideoFile().getName());
                                 
                                 parentFrame.updateProgressBar("Saving color video data ...");
+                                imagePlusColor.deleteRoi();
                                 IJ.save(imagePlusColor, saveLocation.getAbsolutePath()+File.separator+"orig_color_"+parentFrame.getVideoFile().getName());
                         }
                         catch(FileNotFoundException fnne) {
@@ -523,7 +526,7 @@ public class SpotsPanel extends JPanel {
                                                                         DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePaths[i].getLastPathComponent();
                                                                         if (node != null && node.isLeaf() && !node.getAllowsChildren()) {
                                                                                 MyTrack track = (MyTrack) node.getUserObject();
-                                                                                tracksMap.remove("Track_" + track.getTrackId());
+                                                                                tracksMap.remove(track.getLabel());
                                                                                 DefaultTreeModel treeModel = (DefaultTreeModel) spotTree.getModel();
                                                                                 treeModel.removeNodeFromParent(node);
                                                                         }
@@ -535,7 +538,7 @@ public class SpotsPanel extends JPanel {
                                                 else {
                                                         int choice = JOptionPane.showConfirmDialog(null, "Really delete Track " + track.getTrackId() + "?", "Confirm Delete", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
                                                         if (JOptionPane.YES_OPTION == choice) {
-                                                                tracksMap.remove("Track_" + track.getTrackId());
+                                                                tracksMap.remove(track.getLabel());
                                                                 DefaultTreeModel treeModel = (DefaultTreeModel) spotTree.getModel();
                                                                 treeModel.removeNodeFromParent(node);
                                                                 clearSpotTreeSelection();
@@ -860,7 +863,7 @@ public class SpotsPanel extends JPanel {
                         normalizeTracks(this.tracksMap, xOffset, yOffset, w, h);
                 }
 
-                Iterator<MyTrack> iter = tracksMap.values().iterator();
+                Iterator<MyTrack> iter = this.tracksMap.values().iterator();
                 while (iter.hasNext()) {
                         MyTrack track = iter.next();
                         DefaultMutableTreeNode node = new DefaultMutableTreeNode(track);
