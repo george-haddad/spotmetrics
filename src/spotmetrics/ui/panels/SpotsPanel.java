@@ -13,13 +13,22 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.InvalidPropertiesFormatException;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -37,6 +46,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Overlay;
@@ -50,9 +61,13 @@ import spotmetrics.analyzer.export.NotInitializedException;
 import spotmetrics.analyzer.export.OverlayVideoExporter;
 import spotmetrics.data.MySpot;
 import spotmetrics.data.MyTrack;
+import spotmetrics.data.save.Panels;
+import spotmetrics.data.save.Savables;
 import spotmetrics.ui.SpotMetricsFrame;
 import spotmetrics.ui.UITool;
+import spotmetrics.ui.file.FileOpen;
 import spotmetrics.ui.file.FileSave;
+import spotmetrics.util.VideoUtil;
 
 /**
  * 
@@ -72,12 +87,14 @@ public class SpotsPanel extends JPanel {
         private DefaultMutableTreeNode rootNode = null;
         private JButton excelButton = null;
         private JButton overlayButton = null;
+        private JButton saveButton = null;
+        private JButton openButton = null;
 
         /**
          * Key: "Track_+trackId"<br>
          * Value: MyTrack
          */
-        private HashMap<String, MyTrack> tracksMap = null;
+        private Map<String, MyTrack> tracksMap = null;
 
         private boolean inspectingTrack = false;
         private ImagePlus imagePlus = null;
@@ -140,24 +157,49 @@ public class SpotsPanel extends JPanel {
                 overlayButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-//                                File videoFile = parentFrame.getVideoFile();
-//                                final String videoName = videoFile.getName().substring(0, videoFile.getName().lastIndexOf('.'));
-//                                final File overlayFile = FileSave.saveFile("Save Overlay Video as ...", new File(System.getProperty("user.home")), "AVI", videoName + ".avi");
-//                                if(overlayFile != null) {
-                                        Thread t = new Thread(new Runnable() {
-                                                
-                                                @Override
-                                                public void run() {
-                                                        overlayButton_actionPerformed();
-                                                        
-                                                }
-                                        });
-                                        t.start();
-//                                }
+                                Thread t = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                                overlayButton_actionPerformed();
+
+                                        }
+                                });
+                                t.start();
                         }
                 });
-
+                
+                saveButton = new JButton("Save");
+                saveButton.setEnabled(false);
+                saveButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                                Thread t = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                                saveButton_actionPerformed();
+                                        }
+                                });
+                                t.start();
+                        }
+                });
+                
+                openButton = new JButton("Open");
+                openButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                                Thread t = new Thread() {
+                                        @Override
+                                        public void run() {
+                                                openButton_actionPerformed();
+                                        }
+                                };
+                                t.start();
+                        }
+                });
+                
                 JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
+                buttonPanel.add(openButton);
+                buttonPanel.add(saveButton);
                 buttonPanel.add(excelButton);
                 buttonPanel.add(overlayButton);
 
@@ -171,6 +213,282 @@ public class SpotsPanel extends JPanel {
         public SpotsPanel(SpotMetricsFrame parentFrame) {
                 this();
                 setParentFrame(parentFrame);
+        }
+        
+        private final void saveButton_actionPerformed() {
+                File saveLocation = FileSave.saveFile("Save Analysis", new File(System.getProperty("user.home")), "Project Folder", "", true);
+                if(saveLocation != null) {
+                        EventQueue.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                        saveButton.setEnabled(false);
+                                }
+                        });
+                        
+                        parentFrame.setProgressBarIndeterminate(true);
+                        parentFrame.updateProgressBar("Saving configuration data ...");
+                        
+                        saveLocation.mkdirs();
+                        Properties props = new Properties();
+                        
+                        Map<Savables,String> saveData = parentFrame.getSavableDataPanel(Panels.SPOT_METRICS_FRAME);
+                        props.put(Savables.MAIN_VIDEO_FILE_PATH.getKey(), saveData.get(Savables.MAIN_VIDEO_FILE_PATH));
+                        props.put(Savables.MAIN_VIDEO_FILE_NAME.getKey(), saveData.get(Savables.MAIN_VIDEO_FILE_NAME));
+                        
+                        saveData = parentFrame.getSavableDataPanel(Panels.VIEWER_PANEL);
+                        props.put(Savables.VIEWER_FLASH_FRAME.getKey(), saveData.get(Savables.VIEWER_FLASH_FRAME));
+                        props.put(Savables.VIEWER_VIDEO_SELECTION.getKey(), saveData.get(Savables.VIEWER_VIDEO_SELECTION));
+                        
+                        saveData = parentFrame.getSavableDataPanel(Panels.PROCESSING_PANEL);
+                        props.put(Savables.PROCESSING_SUBTRACT_BACKGROUND.getKey(), saveData.get(Savables.PROCESSING_SUBTRACT_BACKGROUND));
+                        props.put(Savables.PROCESSING_DARK_BACKGROUND.getKey(), saveData.get(Savables.PROCESSING_DARK_BACKGROUND));
+                        props.put(Savables.PROCESSING_THRESHOLD_METHOD.getKey(), saveData.get(Savables.PROCESSING_THRESHOLD_METHOD));
+                        
+                        saveData = parentFrame.getSavableDataPanel(Panels.FLASH_PANEL);
+                        props.put(Savables.FLASH_DETECT_MODE.getKey(), saveData.get(Savables.FLASH_DETECT_MODE));
+                        props.put(Savables.FLASH_OFFSET_BEFORE.getKey(), saveData.get(Savables.FLASH_OFFSET_BEFORE));
+                        props.put(Savables.FLASH_OFFSET_AFTER.getKey(), saveData.get(Savables.FLASH_OFFSET_AFTER));
+                        props.put(Savables.FLASH_DETECT.getKey(), saveData.get(Savables.FLASH_DETECT));
+                        props.put(Savables.FLASH_DELETE_ONLY.getKey(), saveData.get(Savables.FLASH_DELETE_ONLY));
+                        
+                        saveData = parentFrame.getSavableDataPanel(Panels.TRACKING_PANEL);
+                        props.put(Savables.TRACK_BLOB_DIAMETER.getKey(), saveData.get(Savables.TRACK_BLOB_DIAMETER));
+                        props.put(Savables.TRACK_BLOB_THRESHOLD.getKey(), saveData.get(Savables.TRACK_BLOB_THRESHOLD));
+                        props.put(Savables.TRACK_LINKING_MAX_DISTANCE.getKey(), saveData.get(Savables.TRACK_LINKING_MAX_DISTANCE));
+                        props.put(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE.getKey(), saveData.get(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE));
+                        props.put(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP.getKey(), saveData.get(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP));
+                        props.put(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE.getKey(), saveData.get(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE));
+
+                        saveData = parentFrame.getSavableDataPanel(Panels.ANALYSIS_PANEL);
+                        props.put(Savables.ANALYSIS_X_OFFSET.getKey(), saveData.get(Savables.ANALYSIS_X_OFFSET));
+                        props.put(Savables.ANALYSIS_Y_OFFSET.getKey(), saveData.get(Savables.ANALYSIS_Y_OFFSET));
+                        props.put(Savables.ANALYSIS_W_OFFSET.getKey(), saveData.get(Savables.ANALYSIS_W_OFFSET));
+                        props.put(Savables.ANALYSIS_H_OFFSET.getKey(), saveData.get(Savables.ANALYSIS_H_OFFSET));
+                        props.put(Savables.ANALYSIS_MIN_SIZE.getKey(), saveData.get(Savables.ANALYSIS_MIN_SIZE));
+                        props.put(Savables.ANALYSIS_MAX_SIZE.getKey(), saveData.get(Savables.ANALYSIS_MAX_SIZE));
+                        props.put(Savables.ANALYSIS_MIN_CIRCULARITY.getKey(), saveData.get(Savables.ANALYSIS_MIN_CIRCULARITY));
+                        props.put(Savables.ANALYSIS_MAX_CIRCULARITY.getKey(), saveData.get(Savables.ANALYSIS_MAX_CIRCULARITY));
+                        props.put(Savables.ANALYSIS_INFINITY.getKey(), saveData.get(Savables.ANALYSIS_INFINITY));
+                        
+                        FileOutputStream fos = null;
+                        FileWriter xWriter = null;
+                        try {
+                                fos = new FileOutputStream(new File(saveLocation.getAbsolutePath()+File.separator+"config.xml"));
+                                props.storeToXML(fos, "SpotMetrics Panel Configurations", "UTF-8");
+                                fos.flush();
+                                
+                                parentFrame.updateProgressBar("Saving tracks data ...");
+                                xWriter = new FileWriter(new File(saveLocation.getAbsolutePath()+File.separator+"tracksMap.xml"));
+                                XStream xstream = new XStream(new StaxDriver());
+                                xstream.toXML(tracksMap, xWriter);
+                                xWriter.flush();
+                                
+                                parentFrame.updateProgressBar("Saving video data ...");
+                                imagePlus.deleteRoi();
+                                imagePlus.setOverlay(null);
+                                IJ.save(imagePlus, saveLocation.getAbsolutePath()+File.separator+"orig_"+parentFrame.getVideoFile().getName());
+                                
+                                parentFrame.updateProgressBar("Saving color video data ...");
+                                imagePlusColor.deleteRoi();
+                                IJ.save(imagePlusColor, saveLocation.getAbsolutePath()+File.separator+"orig_color_"+parentFrame.getVideoFile().getName());
+                        }
+                        catch(FileNotFoundException fnne) {
+                                fnne.printStackTrace();
+                        }
+                        catch(IOException ioe) {
+                                ioe.printStackTrace();
+                        }
+                        finally {
+                                if(fos != null) {
+                                        try {
+                                                fos.close();
+                                        }
+                                        catch(IOException e) {}
+                                        finally {
+                                                fos = null;
+                                        }
+                                }
+                                
+                                if(xWriter != null) {
+                                        try {
+                                                xWriter.close();
+                                        }
+                                        catch(IOException e) {}
+                                        finally {
+                                                xWriter = null;
+                                        }
+                                }
+                                
+                                JOptionPane.showMessageDialog(this, "Project State Saved");
+                        }
+                        
+                        parentFrame.updateProgressBar("Ready");
+                        parentFrame.setProgressBarIndeterminate(false);
+                        
+                        EventQueue.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                        saveButton.setEnabled(true);
+                                }
+                        });
+                }
+        }
+        
+        private final void openButton_actionPerformed() {
+                File projectFolder = FileOpen.getFile("Select the Project Folder", new File(System.getProperty("user.home")).getAbsolutePath(), JFileChooser.DIRECTORIES_ONLY, null, (String[])null);
+                if(projectFolder != null) {
+                        EventQueue.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                        openButton.setEnabled(false);
+                                }
+                        });
+                        
+                        parentFrame.setProgressBarIndeterminate(true);
+                        parentFrame.updateProgressBar("Loading configuration data ...");
+                        
+                        File configXmlFile = new File(projectFolder.getAbsolutePath()+File.separator+"config.xml");
+                        FileInputStream fis = null;
+                        Properties props = null;
+                        
+                        try {
+                                fis = new FileInputStream(configXmlFile);
+                                props = new Properties();
+                                props.loadFromXML(fis);
+                        }
+                        catch(FileNotFoundException fnfe) {
+                                fnfe.printStackTrace();
+                        }
+                        catch(InvalidPropertiesFormatException ipfe) {
+                                ipfe.printStackTrace();
+                        }
+                        catch(IOException ioe) {
+                                ioe.printStackTrace();
+                        }
+                        finally {
+                                if(fis != null) {
+                                        try {
+                                                fis.close();
+                                        }
+                                        catch(IOException e) {}
+                                        finally {
+                                                fis = null;
+                                        }
+                                }
+                        }
+                        
+                        if(props == null) {
+                                JOptionPane.showMessageDialog(this, "There was an error reading the config file", "Read Error", JOptionPane.WARNING_MESSAGE);
+                                return;
+                        }
+                        
+                        Map<Savables,String> viewerSavableMap = new HashMap<Savables, String>();
+                        viewerSavableMap.put(Savables.VIEWER_FLASH_FRAME, props.getProperty(Savables.VIEWER_FLASH_FRAME.getKey()));
+                        viewerSavableMap.put(Savables.VIEWER_VIDEO_SELECTION, props.getProperty(Savables.VIEWER_VIDEO_SELECTION.getKey()));
+                        
+                        Map<Savables,String> flashSavableMap = new HashMap<Savables, String>();
+                        flashSavableMap.put(Savables.FLASH_DETECT_MODE, props.getProperty(Savables.FLASH_DETECT_MODE.getKey()));
+                        flashSavableMap.put(Savables.FLASH_OFFSET_BEFORE, props.getProperty(Savables.FLASH_OFFSET_BEFORE.getKey()));
+                        flashSavableMap.put(Savables.FLASH_OFFSET_AFTER, props.getProperty(Savables.FLASH_OFFSET_AFTER.getKey()));
+                        flashSavableMap.put(Savables.FLASH_DETECT, props.getProperty(Savables.FLASH_DETECT.getKey()));
+                        flashSavableMap.put(Savables.FLASH_DELETE_ONLY, props.getProperty(Savables.FLASH_DELETE_ONLY.getKey()));
+                        
+                        Map<Savables,String> analysisSavableMap = new HashMap<Savables, String>();
+                        analysisSavableMap.put(Savables.ANALYSIS_X_OFFSET, props.getProperty(Savables.ANALYSIS_X_OFFSET.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_Y_OFFSET, props.getProperty(Savables.ANALYSIS_Y_OFFSET.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_W_OFFSET, props.getProperty(Savables.ANALYSIS_W_OFFSET.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_H_OFFSET, props.getProperty(Savables.ANALYSIS_H_OFFSET.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_MIN_SIZE, props.getProperty(Savables.ANALYSIS_MIN_SIZE.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_MAX_SIZE, props.getProperty(Savables.ANALYSIS_MAX_SIZE.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_MIN_CIRCULARITY, props.getProperty(Savables.ANALYSIS_MIN_CIRCULARITY.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_MAX_CIRCULARITY, props.getProperty(Savables.ANALYSIS_MAX_CIRCULARITY.getKey()));
+                        analysisSavableMap.put(Savables.ANALYSIS_INFINITY, props.getProperty(Savables.ANALYSIS_INFINITY.getKey()));
+                        
+                        Map<Savables,String> processingSavableMap = new HashMap<Savables, String>();
+                        processingSavableMap.put(Savables.PROCESSING_SUBTRACT_BACKGROUND, props.getProperty(Savables.PROCESSING_SUBTRACT_BACKGROUND.getKey()));
+                        processingSavableMap.put(Savables.PROCESSING_DARK_BACKGROUND, props.getProperty(Savables.PROCESSING_DARK_BACKGROUND.getKey()));
+                        processingSavableMap.put(Savables.PROCESSING_THRESHOLD_METHOD, props.getProperty(Savables.PROCESSING_THRESHOLD_METHOD.getKey()));
+                        
+                        Map<Savables,String> trackingSavableMap = new HashMap<Savables, String>();
+                        trackingSavableMap.put(Savables.TRACK_BLOB_DIAMETER, props.getProperty(Savables.TRACK_BLOB_DIAMETER.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_BLOB_THRESHOLD, props.getProperty(Savables.TRACK_BLOB_THRESHOLD.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_LINKING_MAX_DISTANCE, props.getProperty(Savables.TRACK_LINKING_MAX_DISTANCE.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE, props.getProperty(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP, props.getProperty(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP.getKey()));
+                        trackingSavableMap.put(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE, props.getProperty(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE.getKey()));
+                        
+                        Map<Savables,String> frameSavableMap = new HashMap<Savables, String>();
+                        frameSavableMap.put(Savables.MAIN_VIDEO_FILE_PATH, props.getProperty(Savables.MAIN_VIDEO_FILE_PATH.getKey()));
+                        frameSavableMap.put(Savables.MAIN_VIDEO_FILE_NAME, props.getProperty(Savables.MAIN_VIDEO_FILE_NAME.getKey()));
+                        
+                        parentFrame.setSavableDataPanel(Panels.SPOT_METRICS_FRAME, frameSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.ANALYSIS_PANEL, analysisSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.FLASH_PANEL, flashSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.PROCESSING_PANEL, processingSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.TRACKING_PANEL, trackingSavableMap);
+                        parentFrame.setSavableDataPanel(Panels.VIEWER_PANEL, viewerSavableMap);
+                        
+                        // Read TracksMap.xml
+                        
+                        parentFrame.updateProgressBar("Loading tracks data ...");
+                        File tracksMapFile = new File(projectFolder.getAbsolutePath()+File.separator+"tracksMap.xml");
+                        FileReader xReader = null;
+                        
+                        try {
+                                xReader = new FileReader(tracksMapFile);
+                                XStream xstream = new XStream(new StaxDriver());
+                                
+                                @SuppressWarnings("unchecked")
+                                Map<String, MyTrack> myTracksMap = (Map<String,MyTrack>)xstream.fromXML(xReader);
+                                
+                                clearSpotTreeSelection();
+                                setSpotTracks(myTracksMap);
+                                setAnalysisOptions(parentFrame.getAnalysisOptions());
+                        }
+                        catch(FileNotFoundException e) {
+                                e.printStackTrace();
+                        }
+                        finally {
+                                if(xReader != null) {
+                                        try {
+                                                xReader.close();
+                                        }
+                                        catch(IOException e) {}
+                                        finally {
+                                                xReader = null;
+                                        }
+                                }
+                        }
+                        
+                        File videoFile = new File(projectFolder.getAbsolutePath()+File.separator+"orig_"+props.getProperty(Savables.MAIN_VIDEO_FILE_NAME.getKey()));
+                        File videoColorFile = new File(projectFolder.getAbsolutePath()+File.separator+"orig_color_"+props.getProperty(Savables.MAIN_VIDEO_FILE_NAME.getKey()));
+                        
+                        parentFrame.updateProgressBar("Loading video file ...");
+                        ImagePlus imagePlus = VideoUtil.loadVideo(videoFile);
+                        IJ.run(imagePlus, "8-bit", "");
+                        
+                        String darkBg = props.getProperty(Savables.PROCESSING_DARK_BACKGROUND.getKey());
+                        boolean blackBackground = Boolean.parseBoolean(darkBg);
+                        IJ.run(imagePlus, "Convert to Mask", "method=Default background=" + (blackBackground == false ? "Light" : "") + " calculate stack");
+                        
+                        parentFrame.updateProgressBar("Loading color video file ...");
+                        ImagePlus imagePlusColor = VideoUtil.loadVideo(videoColorFile);
+                        
+                        setImagePlus(imagePlus);
+                        setImagePlusColor(imagePlusColor);
+                        
+                        imagePlus.show();
+                        
+                        parentFrame.updateProgressBar("Ready");
+                        parentFrame.setProgressBarIndeterminate(false);
+                        
+                        EventQueue.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                        openButton.setEnabled(true);
+                                }
+                        });
+                }
         }
 
         private final void spotTree_rightClickMouseReleased(MouseEvent me) {
@@ -208,7 +526,7 @@ public class SpotsPanel extends JPanel {
                                                                         DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePaths[i].getLastPathComponent();
                                                                         if (node != null && node.isLeaf() && !node.getAllowsChildren()) {
                                                                                 MyTrack track = (MyTrack) node.getUserObject();
-                                                                                tracksMap.remove("Track_" + track.getTrackId());
+                                                                                tracksMap.remove(track.getLabel());
                                                                                 DefaultTreeModel treeModel = (DefaultTreeModel) spotTree.getModel();
                                                                                 treeModel.removeNodeFromParent(node);
                                                                         }
@@ -220,7 +538,7 @@ public class SpotsPanel extends JPanel {
                                                 else {
                                                         int choice = JOptionPane.showConfirmDialog(null, "Really delete Track " + track.getTrackId() + "?", "Confirm Delete", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
                                                         if (JOptionPane.YES_OPTION == choice) {
-                                                                tracksMap.remove("Track_" + track.getTrackId());
+                                                                tracksMap.remove(track.getLabel());
                                                                 DefaultTreeModel treeModel = (DefaultTreeModel) spotTree.getModel();
                                                                 treeModel.removeNodeFromParent(node);
                                                                 clearSpotTreeSelection();
@@ -533,13 +851,19 @@ public class SpotsPanel extends JPanel {
                         }
                 }
         }
-
-        public final void setSpotTracks(HashMap<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h) {
+        
+        private final void setSpotTracks(Map<String, MyTrack> tracksMap) {
+                setSpotTracks(tracksMap, 0, 0, 0, 0, false);
+        }
+        
+        public final void setSpotTracks(Map<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h, boolean normalize) {
                 this.tracksMap = tracksMap;
+                
+                if(normalize) {
+                        normalizeTracks(this.tracksMap, xOffset, yOffset, w, h);
+                }
 
-                normalizeTracks(this.tracksMap, xOffset, yOffset, w, h);
-
-                Iterator<MyTrack> iter = tracksMap.values().iterator();
+                Iterator<MyTrack> iter = this.tracksMap.values().iterator();
                 while (iter.hasNext()) {
                         MyTrack track = iter.next();
                         DefaultMutableTreeNode node = new DefaultMutableTreeNode(track);
@@ -553,9 +877,10 @@ public class SpotsPanel extends JPanel {
 
                 excelButton.setEnabled(true);
                 overlayButton.setEnabled(true);
+                saveButton.setEnabled(true);
         }
 
-        private final void normalizeTracks(HashMap<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h) {
+        private final void normalizeTracks(Map<String, MyTrack> tracksMap, int xOffset, int yOffset, int w, int h) {
                 Iterator<MyTrack> iter = tracksMap.values().iterator();
                 while (iter.hasNext()) {
                         MyTrack track = iter.next();
@@ -577,6 +902,8 @@ public class SpotsPanel extends JPanel {
                                 EventQueue.invokeLater(new Runnable() {
                                         @Override
                                         public void run() {
+                                                saveButton.setEnabled(false);
+                                                openButton.setEnabled(false);
                                                 excelButton.setEnabled(false);
                                                 overlayButton.setEnabled(false);
                                                 parentFrame.setProcessButtonEnabled(false);
@@ -590,6 +917,8 @@ public class SpotsPanel extends JPanel {
                                 EventQueue.invokeLater(new Runnable() {
                                         @Override
                                         public void run() {
+                                                saveButton.setEnabled(true);
+                                                openButton.setEnabled(true);
                                                 excelButton.setEnabled(true);
                                                 overlayButton.setEnabled(true);
                                                 parentFrame.setProcessButtonEnabled(true);
@@ -613,6 +942,8 @@ public class SpotsPanel extends JPanel {
                         EventQueue.invokeLater(new Runnable() {
                                 @Override
                                 public void run() {
+                                        saveButton.setEnabled(false);
+                                        openButton.setEnabled(false);
                                         excelButton.setEnabled(false);
                                         overlayButton.setEnabled(false);
                                         parentFrame.setProcessButtonEnabled(false);
@@ -632,6 +963,8 @@ public class SpotsPanel extends JPanel {
                                 EventQueue.invokeLater(new Runnable() {
                                         @Override
                                         public void run() {
+                                                saveButton.setEnabled(true);
+                                                openButton.setEnabled(true);
                                                 excelButton.setEnabled(true);
                                                 overlayButton.setEnabled(true);
                                                 parentFrame.setProcessButtonEnabled(true);
@@ -653,6 +986,8 @@ public class SpotsPanel extends JPanel {
                         EventQueue.invokeLater(new Runnable() {
                                 @Override
                                 public void run() {
+                                        saveButton.setEnabled(false);
+                                        openButton.setEnabled(false);
                                         excelButton.setEnabled(false);
                                         overlayButton.setEnabled(false);
                                         parentFrame.setProcessButtonEnabled(false);
@@ -686,6 +1021,8 @@ public class SpotsPanel extends JPanel {
                                         EventQueue.invokeLater(new Runnable() {
                                                 @Override
                                                 public void run() {
+                                                        saveButton.setEnabled(true);
+                                                        openButton.setEnabled(true);
                                                         excelButton.setEnabled(true);
                                                         overlayButton.setEnabled(true);
                                                         parentFrame.setProcessButtonEnabled(true);
@@ -702,6 +1039,8 @@ public class SpotsPanel extends JPanel {
                 EventQueue.invokeLater(new Runnable() {
                         @Override
                         public void run() {
+                                saveButton.setEnabled(false);
+                                openButton.setEnabled(false);
                                 excelButton.setEnabled(false);
                                 overlayButton.setEnabled(false);
                                 parentFrame.setProcessButtonEnabled(false);
@@ -735,6 +1074,8 @@ public class SpotsPanel extends JPanel {
                 EventQueue.invokeLater(new Runnable() {
                         @Override
                         public void run() {
+                                saveButton.setEnabled(true);
+                                openButton.setEnabled(true);
                                 excelButton.setEnabled(true);
                                 overlayButton.setEnabled(true);
                                 parentFrame.setProcessButtonEnabled(true);
@@ -796,7 +1137,7 @@ public class SpotsPanel extends JPanel {
                 spotTree.clearSelection();
         }
 
-        public final HashMap<String, MyTrack> getSpotTracks() {
+        public final Map<String, MyTrack> getSpotTracks() {
                 return tracksMap;
         }
 

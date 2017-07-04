@@ -461,12 +461,15 @@ public class AVI_Reader extends VirtualStack {
          */
         @Override
         public int getSize() {
+                int size = 0;
                 if (frameInfos == null) {
-                        return 0;
+                        size = 0;
                 }
                 else {
-                        return frameInfos.size();
+                        size = frameInfos.size();
                 }
+                
+                return size;
         }
 
         /**
@@ -711,9 +714,8 @@ public class AVI_Reader extends VirtualStack {
                                 if (throwNotFoundException) {
                                         throw new Exception("Required item '" + fourccString(fourcc) + "' not found");
                                 }
-                                else {
-                                        return -1;
-                                }
+                                
+                                return -1;
                         }
 
                         long size = readInt() & SIZE_MASK;
@@ -1355,13 +1357,12 @@ public class AVI_Reader extends VirtualStack {
          */
         private Object readFrame(RandomAccessFile rFile, long filePos, int size) throws Exception, IOException {
                 rFile.seek(filePos);
-                if (variableLength) {
+                if(variableLength) {
                         // JPEG or PNG-compressed frames
                         return readCompressedFrame(rFile, size);
                 }
-                else {
-                        return readFixedLengthFrame(rFile, size);
-                }
+
+                return readFixedLengthFrame(rFile, size);
         }
 
         /**
@@ -1859,9 +1860,8 @@ public class AVI_Reader extends VirtualStack {
 
                                 return result;
                         }
-                        else {
-                                return rFile.read();
-                        }
+                        
+                        return rFile.read();
                 }
 
                 /** Read bytes into an array */

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -27,7 +28,7 @@ import spotmetrics.data.MyTrack;
  */
 public final class ExcelExporter implements Closeable {
 
-        private HashMap<String, MyTrack> tracksMap = null;
+        private Map<String, MyTrack> tracksMap = null;
         private ImagePlus imagePlus = null;
         private ImagePlus imagePlusColor = null;
         private AnalysisOptions analysisOpt = null;
@@ -46,7 +47,7 @@ public final class ExcelExporter implements Closeable {
                 setAnalysisOptions(analysisOpt);
         }
 
-        public final void export(File excelFile) throws NotInitializedException, IOException {
+        public final void export(File excelFile) throws NotInitializedException {
                 if (!isInit()) {
                         throw new NotInitializedException("The ExcelExporter has not been properly initialized");
                 }
@@ -171,7 +172,7 @@ public final class ExcelExporter implements Closeable {
                 }
         }
 
-        public final void setTracks(HashMap<String, MyTrack> tracksMap) throws NullPointerException {
+        public final void setTracks(Map<String, MyTrack> tracksMap) throws NullPointerException {
                 if (tracksMap == null) {
                         throw new NullPointerException("Cannot set null tracksMap");
                 }

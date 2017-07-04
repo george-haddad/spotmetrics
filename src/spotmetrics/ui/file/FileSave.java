@@ -15,12 +15,22 @@ public final class FileSave {
         private FileSave() {
 
         }
-
+        
         public static final File saveFile(String title, File startDirectory, final String fileDesc, String defaultFileName) {
+                return saveFile(title, startDirectory, fileDesc, defaultFileName, false);
+        }
+        
+        public static final File saveFile(String title, File startDirectory, final String fileDesc, String defaultFileName, boolean dirsOnly) {
 
                 JFileChooser chooser = new JFileChooser();
-
-                chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                
+                if(dirsOnly) {
+                        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                }
+                else {
+                        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                }
+                
                 chooser.setDialogTitle(title);
 
                 if (startDirectory != null) {
@@ -29,9 +39,16 @@ public final class FileSave {
                 else {
                         chooser.setCurrentDirectory(new File(System.getProperties().getProperty("user.home")));
                 }
-
-                chooser.setSelectedFile(new File(chooser.getCurrentDirectory().getAbsolutePath() + File.separator + defaultFileName));
-
+                
+                File defaultFile = null;
+                if(defaultFileName != null) {
+                        defaultFile = new File(chooser.getCurrentDirectory().getAbsolutePath() + File.separator + defaultFileName);
+                }
+                else {
+                        defaultFile = new File(chooser.getCurrentDirectory().getAbsolutePath());
+                }
+                
+                chooser.setSelectedFile(defaultFile);
                 chooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
                         @Override
                         public boolean accept(File f) {
@@ -45,17 +62,12 @@ public final class FileSave {
                 });
 
                 int r = chooser.showSaveDialog(null);
-
+                
+                File path = null;
                 if (r == JFileChooser.APPROVE_OPTION) {
-                        return new File(chooser.getSelectedFile().getAbsolutePath());
+                        path = new File(chooser.getSelectedFile().getAbsolutePath());
                 }
-                else {
-                        return null;
-                }
+                
+                return path;
         }
-
-        //        public static void main(String ... args) {
-        //                File shit = FileSave.saveFile("pick a dir", new File(System.getProperty("user.home")), "Excel File", "test file.xls");
-        //                System.out.println(shit.getAbsolutePath());
-        //        }
 }

@@ -3,6 +3,8 @@ package spotmetrics.ui.panels;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JLabel;
@@ -13,6 +15,8 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import spotmetrics.data.save.SavablePanel;
+import spotmetrics.data.save.Savables;
 
 /**
  * 
@@ -21,7 +25,7 @@ import javax.swing.event.ChangeListener;
  * Created on: Dec 17, 2015
  *
  */
-public class TrackingPanel extends JPanel {
+public class TrackingPanel extends JPanel implements SavablePanel {
 
         private static final long serialVersionUID = 8039875070656802888L;
 
@@ -204,5 +208,50 @@ public class TrackingPanel extends JPanel {
 
         public final int getInitialSpotFilterValue() {
                 return ((Integer) initialSpotFilterValueSpinner.getModel().getValue()).intValue();
+        }
+
+        @Override
+        public Map<Savables, String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
+                savableData.put(Savables.TRACK_BLOB_DIAMETER, String.valueOf(blobDiameterSlider.getValue()));
+                savableData.put(Savables.TRACK_BLOB_THRESHOLD, String.valueOf(blobThresholdSlider.getValue()));
+                savableData.put(Savables.TRACK_LINKING_MAX_DISTANCE, String.valueOf(linkingMaxDistanceSpinner.getModel().getValue()));
+                savableData.put(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE, String.valueOf(gapClosingMaxDistanceSpinner.getModel().getValue()));
+                savableData.put(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP, String.valueOf(gapClosingMaxFrameGapSpinner.getModel().getValue()));
+                savableData.put(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE, String.valueOf(initialSpotFilterValueSpinner.getModel().getValue()));
+                return savableData;
+        }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.TRACK_BLOB_DIAMETER)) {
+                        String value = savableData.get(Savables.TRACK_BLOB_DIAMETER);
+                        blobDiameterSlider.getModel().setValue(Integer.parseInt(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_BLOB_THRESHOLD)) {
+                        String value = savableData.get(Savables.TRACK_BLOB_THRESHOLD);
+                        blobThresholdSlider.getModel().setValue(Integer.parseInt(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_LINKING_MAX_DISTANCE)) {
+                        String value = savableData.get(Savables.TRACK_LINKING_MAX_DISTANCE);
+                        linkingMaxDistanceSpinner.getModel().setValue(Integer.valueOf(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE)) {
+                        String value = savableData.get(Savables.TRACK_GAP_CLOSING_MAX_DISTANCE);
+                        gapClosingMaxDistanceSpinner.getModel().setValue(Integer.valueOf(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP)) {
+                        String value = savableData.get(Savables.TRACK_GAP_CLOSING_MAX_FRAME_GAP);
+                        gapClosingMaxFrameGapSpinner.getModel().setValue(Integer.valueOf(value));
+                }
+                
+                if(savableData.containsKey(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE)) {
+                        String value = savableData.get(Savables.TRACK_INITIAL_SPOT_FILTER_VALUE);
+                        initialSpotFilterValueSpinner.getModel().setValue(Integer.valueOf(value));
+                }
         }
 }

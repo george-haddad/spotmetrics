@@ -3,11 +3,15 @@ package spotmetrics.ui.panels;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import layout.TableLayout;
+import spotmetrics.data.save.SavablePanel;
+import spotmetrics.data.save.Savables;
 import spotmetrics.ui.comp.AbstractActionListenerPanel;
 
 /**
@@ -17,7 +21,7 @@ import spotmetrics.ui.comp.AbstractActionListenerPanel;
  * Created on: Dec 17, 2015
  *
  */
-public class ViewerPanel extends AbstractActionListenerPanel {
+public class ViewerPanel extends AbstractActionListenerPanel implements SavablePanel {
 
         private static final long serialVersionUID = 2404277645392796694L;
 
@@ -98,5 +102,28 @@ public class ViewerPanel extends AbstractActionListenerPanel {
         
         public final void setCropButtonEnabled(boolean enabled) {
                 cropVideoButton.setEnabled(enabled);
+        }
+
+        @Override
+        public Map<Savables,String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
+                savableData.put(Savables.VIEWER_FLASH_FRAME, flashFrameField.getText());
+                savableData.put(Savables.VIEWER_VIDEO_SELECTION, videoSelectField.getText());
+                return savableData;
+        }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.VIEWER_FLASH_FRAME)) {
+                        String value = savableData.get(Savables.VIEWER_FLASH_FRAME);
+                        setFlashFrame(value);
+                }
+                
+                if(savableData.containsKey(Savables.VIEWER_VIDEO_SELECTION)) {
+                        String value = savableData.get(Savables.VIEWER_VIDEO_SELECTION);
+                        setVideoSelectRange(value);
+                }
+                
+                cropVideoButton.setEnabled(false);
         }
 }

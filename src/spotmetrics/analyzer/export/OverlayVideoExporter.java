@@ -3,6 +3,7 @@ package spotmetrics.analyzer.export;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import ij.ImagePlus;
 import ij.gui.Overlay;
 import ij.gui.Roi;
@@ -18,7 +19,7 @@ import spotmetrics.data.MyTrack;
  */
 public final class OverlayVideoExporter {
 
-        private HashMap<String, MyTrack> tracksMap = null;
+        private Map<String, MyTrack> tracksMap = null;
         private ImagePlus imagePlus = null;
         private ImagePlus imagePlusColor = null;
         private AnalysisOptions analysisOpt = null;
@@ -63,7 +64,7 @@ public final class OverlayVideoExporter {
                 overlayVideo.show();
         }
         
-        public final void setTracks(HashMap<String, MyTrack> tracksMap) throws NullPointerException {
+        public final void setTracks(Map<String, MyTrack> tracksMap) throws NullPointerException {
                 if (tracksMap == null) {
                         throw new NullPointerException("Cannot set null tracksMap");
                 }

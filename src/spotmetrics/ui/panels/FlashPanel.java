@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
@@ -16,6 +18,8 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import spotmetrics.analyzer.FlashDetect;
+import spotmetrics.data.save.SavablePanel;
+import spotmetrics.data.save.Savables;
 
 /**
  * 
@@ -24,7 +28,7 @@ import spotmetrics.analyzer.FlashDetect;
  * Created on: Dec 17, 2015
  *
  */
-public class FlashPanel extends JPanel {
+public class FlashPanel extends JPanel implements SavablePanel {
 
         private static final long serialVersionUID = 6682806437593675558L;
 
@@ -225,5 +229,66 @@ public class FlashPanel extends JPanel {
         
         public final boolean isDeleteFlashOnly() {
                 return deleteFlashOnlyCheckBox.isSelected();
+        }
+
+        @Override
+        public Map<Savables, String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
+                savableData.put(Savables.FLASH_DETECT_MODE, ((FlashDetect)flashDetectModeComboBox.getSelectedItem()).toString());
+                savableData.put(Savables.FLASH_OFFSET_BEFORE, String.valueOf(offsetBeforeSlider.getValue()));
+                savableData.put(Savables.FLASH_OFFSET_AFTER, String.valueOf(offsetAfterSlider.getValue()));
+                savableData.put(Savables.FLASH_DETECT, String.valueOf(detectFlashCheckBox.isSelected()));
+                savableData.put(Savables.FLASH_DELETE_ONLY, String.valueOf(deleteFlashOnlyCheckBox.isSelected()));
+                return savableData;
+        }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.FLASH_DETECT_MODE)) {
+                        String value = savableData.get(Savables.FLASH_DETECT_MODE);
+                        switch(value) {
+                                case "Strict": {
+                                        flashDetectModeComboBox.setSelectedItem(FlashDetect.STRICT);
+                                        break;
+                                }
+                                
+                                case "Semi-Strict": {
+                                        flashDetectModeComboBox.setSelectedItem(FlashDetect.SEMISTRICT);
+                                        break;
+                                }
+                                
+                                case "Relaxed": {
+                                        flashDetectModeComboBox.setSelectedItem(FlashDetect.RELAXED);
+                                        break;
+                                }
+                                
+                                default: {
+                                        flashDetectModeComboBox.setSelectedItem(FlashDetect.STRICT);
+                                        break;
+                                }
+                        }
+                }
+                
+                if(savableData.containsKey(Savables.FLASH_DETECT)) {
+                        String value = savableData.get(Savables.FLASH_DETECT);
+                        detectFlashCheckBox.setSelected(Boolean.parseBoolean(value));
+                        detectFlashCheckBox_actionPerformed();
+                }
+                
+                if(savableData.containsKey(Savables.FLASH_OFFSET_BEFORE)) {
+                        String value = savableData.get(Savables.FLASH_OFFSET_BEFORE);
+                        offsetBeforeSlider.setValue(Integer.parseInt(value));
+                }
+                
+                if(savableData.containsKey(Savables.FLASH_OFFSET_AFTER)) {
+                        String value = savableData.get(Savables.FLASH_OFFSET_AFTER);
+                        offsetAfterSlider.setValue(Integer.parseInt(value));
+                }
+                
+                if(savableData.containsKey(Savables.FLASH_DELETE_ONLY)) {
+                        String value = savableData.get(Savables.FLASH_DELETE_ONLY);
+                        deleteFlashOnlyCheckBox.setSelected(Boolean.parseBoolean(value));
+                        detectFlashCheckBox_actionPerformed();
+                }
         }
 }

@@ -1,11 +1,11 @@
 package spotmetrics.analyzer;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
@@ -27,7 +27,6 @@ import ij.measure.Calibration;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import spotmetrics.data.MySpot;
 import spotmetrics.data.MyTrack;
-import spotmetrics.plugins.AVI_Reader;
 import spotmetrics.plugins.RGBMeasurements;
 import spotmetrics.plugins.RGB_Measure_Plus;
 import spotmetrics.ui.ProgressUpdatableFrame;
@@ -172,8 +171,8 @@ public final class AnalysisEngine {
                 }
         }
 
-        public final HashMap<String, MyTrack> trackSpots() {
-                HashMap<String, MyTrack> tracksMap = null;
+        public final Map<String, MyTrack> trackSpots() {
+                Map<String, MyTrack> tracksMap = null;
 
                 calibrateImageDimensions();
 
@@ -247,7 +246,7 @@ public final class AnalysisEngine {
                                 }
                         }
 
-                        tracksMap = new HashMap<String, MyTrack>();
+                        tracksMap = new TreeMap<String, MyTrack>();
                         TrackModel trackModel = model.getTrackModel();
                         Set<Integer> trackIds = trackModel.trackIDs(true);
 
@@ -255,7 +254,7 @@ public final class AnalysisEngine {
                                 Set<Spot> spots = trackModel.trackSpots(trackId);
 
                                 MyTrack tr = new MyTrack();
-                                tr.setLabel("Track_" + trackId);
+                                tr.setLabel("Track_" + String.format("%04d", trackId));
                                 tr.setTrackId(trackId.intValue());
                                 tr.setNumberOfSpots(spots.size());
                                 tr.setTrackDuration(spots.size());
@@ -295,7 +294,7 @@ public final class AnalysisEngine {
                 return tracksMap;
         }
 
-        private final void filterTrackList(HashMap<String, MyTrack> tracksMap, Model model) {
+        private final void filterTrackList(Map<String, MyTrack> tracksMap, Model model) {
                 //Only keep the tracks who have spots between startFrame and endFrame
                 //Remove all tracks that don't match
                 //Remove all spots below and above the range
@@ -319,19 +318,6 @@ public final class AnalysisEngine {
 
                 deleteTrackIDs.clear();
                 deleteTrackIDs = null;
-        }
-        
-        public final ImagePlus loadVideo(File videoFile) {
-                if (videoFile == null) {
-                        throw new NullPointerException("Cannot analyzer a null video");
-                }
-                
-                AVI_Reader aviReader = new AVI_Reader();
-                parentFrame.updateProgressBar("Loading video file ...");
-                aviReader.openVideo(videoFile, true);
-                ImagePlus imagePlus = aviReader.getImagePlus();
-                aviReader = null;
-                return imagePlus;
         }
         
         public final void cropVideo() {
@@ -445,27 +431,24 @@ public final class AnalysisEngine {
                                 if (Double.isNaN(rgbMeasurements.getrStdDev()) && Double.isNaN(rgbMeasurements.getgStdDev()) && Double.isNaN(rgbMeasurements.getbStdDev())) {
                                         return true;
                                 }
-                                else {
-                                        return false;
-                                }
+                                
+                                return false;
                         }
 
                         case SEMISTRICT: {
                                 if (Double.isNaN(rgbMeasurements.getrStdDev()) && Double.isNaN(rgbMeasurements.getgStdDev()) || Double.isNaN(rgbMeasurements.getbStdDev())) {
                                         return true;
                                 }
-                                else {
-                                        return false;
-                                }
+                                
+                                return false;
                         }
 
                         case RELAXED: {
                                 if (Double.isNaN(rgbMeasurements.getrStdDev()) || Double.isNaN(rgbMeasurements.getgStdDev()) || Double.isNaN(rgbMeasurements.getbStdDev())) {
                                         return true;
                                 }
-                                else {
-                                        return false;
-                                }
+                                
+                                return false;
                         }
 
                         default: {

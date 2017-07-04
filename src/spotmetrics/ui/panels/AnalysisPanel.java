@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
@@ -16,6 +18,8 @@ import javax.swing.JTextField;
 import javax.swing.text.AbstractDocument;
 import layout.TableLayout;
 import spotmetrics.analyzer.AnalysisOptions;
+import spotmetrics.data.save.SavablePanel;
+import spotmetrics.data.save.Savables;
 import spotmetrics.ui.comp.RegexDocumentFilter;
 
 /**
@@ -25,7 +29,7 @@ import spotmetrics.ui.comp.RegexDocumentFilter;
  * Created on: Dec 17, 2015
  *
  */
-public class AnalysisPanel extends JPanel {
+public class AnalysisPanel extends JPanel implements SavablePanel {
 
         private static final long serialVersionUID = 8797948870110036499L;
         private static final Pattern DECIMAL_PATTERN = Pattern.compile("^\\d+(\\.\\d{1,2})?$");
@@ -93,10 +97,14 @@ public class AnalysisPanel extends JPanel {
 
                 double spacer = 5;
                 double[][] layoutSize1 = {
-                                //                   0,      1,                      2,      3,                     4,      5,                     6,      7,               8
-                                { TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.FILL }, { TableLayout.PREFERRED, //0
-                                                spacer, TableLayout.PREFERRED  //2
-                                } };
+                                //                    0,      1,                     2,      3,                     4,      5,                     6,      7,               8
+                                { TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.PREFERRED, spacer, TableLayout.FILL },
+                                {
+                                  TableLayout.PREFERRED, //0
+                                  spacer,
+                                  TableLayout.PREFERRED  //2
+                                }
+                };
 
                 JPanel analysisPanel = new JPanel(new TableLayout(layoutSize1));
                 analysisPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder("Particle Analyzer")));
@@ -238,5 +246,69 @@ public class AnalysisPanel extends JPanel {
                 aopt.setMaxCircularity(getMaxCircularity());
                 aopt.setInfinity(isInfinity());
                 return aopt;
+        }
+
+        @Override
+        public Map<Savables, String> getSavableData() {
+                Map<Savables,String> savableData = new HashMap<Savables,String>();
+                savableData.put(Savables.ANALYSIS_X_OFFSET, xOffsetField.getText());
+                savableData.put(Savables.ANALYSIS_Y_OFFSET, yOffsetField.getText());
+                savableData.put(Savables.ANALYSIS_W_OFFSET, wOffsetField.getText());
+                savableData.put(Savables.ANALYSIS_H_OFFSET, hOffsetField.getText());
+                savableData.put(Savables.ANALYSIS_MIN_SIZE, minSizeField.getText());
+                savableData.put(Savables.ANALYSIS_MAX_SIZE, maxSizeField.getText());
+                savableData.put(Savables.ANALYSIS_MIN_CIRCULARITY, circMinField.getText());
+                savableData.put(Savables.ANALYSIS_MAX_CIRCULARITY, circMaxField.getText());
+                savableData.put(Savables.ANALYSIS_INFINITY, String.valueOf(infinityCheckBox.isSelected()));
+                return savableData;
+        }
+
+        @Override
+        public void setSavableData(Map<Savables, String> savableData) {
+                if(savableData.containsKey(Savables.ANALYSIS_X_OFFSET)) {
+                        String value = savableData.get(Savables.ANALYSIS_X_OFFSET);
+                        xOffsetField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_Y_OFFSET)) {
+                        String value = savableData.get(Savables.ANALYSIS_Y_OFFSET);
+                        yOffsetField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_W_OFFSET)) {
+                        String value = savableData.get(Savables.ANALYSIS_W_OFFSET);
+                        wOffsetField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_H_OFFSET)) {
+                        String value = savableData.get(Savables.ANALYSIS_H_OFFSET);
+                        hOffsetField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_MIN_SIZE)) {
+                        String value = savableData.get(Savables.ANALYSIS_MIN_SIZE);
+                        minSizeField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_MAX_SIZE)) {
+                        String value = savableData.get(Savables.ANALYSIS_MAX_SIZE);
+                        maxSizeField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_MIN_CIRCULARITY)) {
+                        String value = savableData.get(Savables.ANALYSIS_MIN_CIRCULARITY);
+                        circMinField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_MAX_CIRCULARITY)) {
+                        String value = savableData.get(Savables.ANALYSIS_MAX_CIRCULARITY);
+                        circMaxField.setText(value);
+                }
+                
+                if(savableData.containsKey(Savables.ANALYSIS_INFINITY)) {
+                        String value = savableData.get(Savables.ANALYSIS_INFINITY);
+                        infinityCheckBox.setSelected(Boolean.parseBoolean(value));
+                        infinityCheckBox_actionPerformed();
+                }
         }
 }
