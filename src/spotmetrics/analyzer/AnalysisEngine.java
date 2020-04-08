@@ -1,11 +1,9 @@
 package spotmetrics.analyzer;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
@@ -177,6 +175,7 @@ public final class AnalysisEngine {
                 calibrateImageDimensions();
 
                 parentFrame.updateProgressBar("Setting up TrackMate ...");
+                IJ.log("Setting up TrackMate ...");
 
                 Model model = new Model();
                 model.setLogger(Logger.IJ_LOGGER);
@@ -209,6 +208,8 @@ public final class AnalysisEngine {
                 if (ok) {
                         boolean success = false;
                         parentFrame.updateProgressBar("Detecting spots ...");
+                        IJ.log("Detecting spots ...");
+                        
                         success = trackMate.execDetection();
                         if (!success) {
                                 IJ.error("TrackMate Error - Detection", trackMate.getErrorMessage());
@@ -216,6 +217,8 @@ public final class AnalysisEngine {
 
                         if (success) {
                                 parentFrame.updateProgressBar("Initial spot filtering ...");
+                                IJ.log("Initial spot filtering ...");
+                                
                                 success = trackMate.execInitialSpotFiltering();
                                 if (!success) {
                                         IJ.error("TrackMate Error - Initial Filtering", trackMate.getErrorMessage());
@@ -224,6 +227,8 @@ public final class AnalysisEngine {
 
                         if (success) {
                                 parentFrame.updateProgressBar("Spot filtering ...");
+                                IJ.log("Spot filtering ...");
+                                
                                 success = trackMate.execSpotFiltering(false);
                                 if (!success) {
                                         IJ.error("TrackMate Error - Spot Filtering", trackMate.getErrorMessage());
@@ -232,6 +237,8 @@ public final class AnalysisEngine {
 
                         if (success) {
                                 parentFrame.updateProgressBar("Tracking spots ...");
+                                IJ.log("Tracking spots ...");
+                                
                                 success = trackMate.execTracking();
                                 if (!success) {
                                         IJ.error("TrackMate Error - Tracking", trackMate.getErrorMessage());
@@ -240,6 +247,8 @@ public final class AnalysisEngine {
 
                         if (success) {
                                 parentFrame.updateProgressBar("Track filtering ...");
+                                IJ.log("Track filtering ...");
+                                
                                 success = trackMate.execTrackFiltering(false);
                                 if (!success) {
                                         IJ.error("TrackMate Error - Track Filtering", trackMate.getErrorMessage());
@@ -252,6 +261,7 @@ public final class AnalysisEngine {
 
                         for (Integer trackId : trackIds) {
                                 Set<Spot> spots = trackModel.trackSpots(trackId);
+//                                IJ.log("Running through Track ID "+trackId+" ...");
 
                                 MyTrack tr = new MyTrack();
                                 tr.setLabel("Track_" + String.format("%04d", trackId));
@@ -283,9 +293,13 @@ public final class AnalysisEngine {
                 else {
                         IJ.error("TrackMate Error - Settings", trackMate.getErrorMessage());
                 }
-
-                parentFrame.updateProgressBar("Syncing tracks to video range ...");
-                filterTrackList(tracksMap, model);
+                
+//                parentFrame.updateProgressBar("Syncing tracks to video range ...");
+//                IJ.log("Syncing tracks to video range ...");
+//                
+//                IJ.log("Before Filter: tracksMap.size() == "+tracksMap.size());
+//                filterTrackList(tracksMap, model);
+//                IJ.log("After Filter: tracksMap.size() == "+tracksMap.size());
 
                 model = null;
                 settings = null;
@@ -294,31 +308,33 @@ public final class AnalysisEngine {
                 return tracksMap;
         }
 
-        private final void filterTrackList(Map<String, MyTrack> tracksMap, Model model) {
-                //Only keep the tracks who have spots between startFrame and endFrame
-                //Remove all tracks that don't match
-                //Remove all spots below and above the range
-
-                parentFrame.updateProgressBar("Synchronizng tracks to video range ... ");
-
-                List<String> deleteTrackIDs = new ArrayList<String>();
-
-                Iterator<MyTrack> iter = tracksMap.values().iterator();
-                while (iter.hasNext()) {
-                        MyTrack track = iter.next();
-
-                        if (track.getTrackDuration() != imagePlus.getStackSize()) {
-                                deleteTrackIDs.add(track.getLabel());
-                        }
-                }
-
-                for (String trackID : deleteTrackIDs) {
-                        tracksMap.remove(trackID);
-                }
-
-                deleteTrackIDs.clear();
-                deleteTrackIDs = null;
-        }
+//        private final void filterTrackList(Map<String, MyTrack> tracksMap, Model model) {
+//                //Only keep the tracks who have spots between startFrame and endFrame
+//                //Remove all tracks that don't match
+//                //Remove all spots below and above the range
+//
+//                parentFrame.updateProgressBar("Synchronizng tracks to video range ... ");
+//
+//                List<String> deleteTrackIDs = new ArrayList<String>();
+//
+//                Iterator<MyTrack> iter = tracksMap.values().iterator();
+//                while (iter.hasNext()) {
+//                        MyTrack track = iter.next();
+//                        
+//                        IJ.log("Track Duration = "+track.getTrackDuration()+" !=  stackSize = "+imagePlus.getStackSize());
+//                        if (track.getTrackDuration() != imagePlus.getStackSize()) {
+//                                deleteTrackIDs.add(track.getLabel());
+//                                IJ.log("Delete track: "+track.getLabel());
+//                        }
+//                }
+//
+//                for (String trackID : deleteTrackIDs) {
+//                        tracksMap.remove(trackID);
+//                }
+//
+//                deleteTrackIDs.clear();
+//                deleteTrackIDs = null;
+//        }
         
         public final void cropVideo() {
                 if(imagePlus != null) {
