@@ -24,6 +24,8 @@ import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+
+import ij.IJ;
 import ij.ImagePlus;
 import spotmetrics.SpotMetrics;
 import spotmetrics.analyzer.AnalysisEngine;
@@ -338,8 +340,11 @@ public class SpotMetricsFrame extends JFrame implements ProgressUpdatableFrame, 
                                         engine.processVideo();
                                         engine.setTrackingOptions(trackOptions);
                                         Map<String, MyTrack> tracksMap = engine.trackSpots();
-
+                                        
+//                                        IJ.log("Is tracksMap null? "+(tracksMap == null));
+                                        
                                         if (tracksMap != null) {
+                                                IJ.log("tracksMap size = "+tracksMap.size());
                                                 spotsPanel.clearSpotTreeSelection();
                                                 spotsPanel.setSpotTracks(tracksMap, analysisPanel.getXoffset(), analysisPanel.getYoffset(), analysisPanel.getWoffset(), analysisPanel.getHoffset(), true);
                                                 spotsPanel.setImagePlus(engine.getImagePlus());
